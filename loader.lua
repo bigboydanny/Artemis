@@ -1786,7 +1786,7 @@ function ArtemisUI:Window(cfg)
 	end
 
 	function WinObj:Notify(title,body,duration,side)
-		local ValenceUI = loadstring(game:HttpGet("https://valencea.xyz/Modules/ValenceUI.lua"))()
+		local ValenceUI = loadstring(game:HttpGet("https://cdn.valencea.xyz/Modules/ValenceUI.lua"))()
 		ValenceUI.Notify({
 			Title    = title,
 			Body     = body,
