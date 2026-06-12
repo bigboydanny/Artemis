@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artemis — Redefining UI on Roblox.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="https://valencea.xyz/Artemis/icon.png">
+
+<meta property="og:title" content="Artemis || Redefining UI On Roblox">
+<meta property="og:description" content="A modern, lightweight UI library for Roblox. Build beautiful interfaces in minutes.">
+<meta property="og:image" content="https://valencea.xyz/Artemis/icon.png">
+<meta property="og:url" content="https://valencea.xyz/Artemis">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg0: #09090d;
+  --bg1: #0d0d13;
+  --bg2: #11111a;
+  --bg3: #16162a;
+  --bg4: #1c1c2a;
+  --brd0: #1e1e2e;
+  --brd1: #2c2c42;
+  --brd2: #3c3c5a;
+  --accent: #6b63ff;
+  --accent-hi: #8b85ff;
+  --accent-glow: rgba(107,99,255,0.4);
+  --accent-dim: rgba(107,99,255,0.12);
+  --text-hi: #f0eeff;
+  --text-mid: #9690c3;
+  --text-lo: #44406c;
+  --white: #ffffff;
+  --glass: rgba(13,13,19,0.6);
+  --mono: 'JetBrains Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg0);
+  color: var(--text-hi);
+  overflow-x: hidden;
+}
+
+/* ── Ambient ─────────────────────────────────────── */
+.ambient { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); }
+.orb-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(107,99,255,0.18) 0%, transparent 70%); top: -200px; left: -100px; animation: floatA 20s ease-in-out infinite alternate; }
+.orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(107,99,255,0.1) 0%, transparent 70%); bottom: 10%; right: -50px; animation: floatB 25s ease-in-out infinite alternate; }
+.orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(139,133,255,0.08) 0%, transparent 70%); top: 50%; left: 50%; animation: floatC 30s ease-in-out infinite alternate; }
+@keyframes floatA { to { transform: translate(60px, 80px); } }
+@keyframes floatB { to { transform: translate(-40px, -60px); } }
+@keyframes floatC { to { transform: translate(80px, -50px); } }
+
+.noise { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 150px; }
+
+/* ── Nav ─────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 56px; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(9,9,13,0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--brd0);
+  animation: slideDown 0.5s ease both;
+}
+@keyframes slideDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:none; } }
+
+.logo { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 800; letter-spacing: -0.4px; color: var(--text-hi); text-decoration: none; }
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); animation: dotPulse 2.4s ease-in-out infinite; }
+@keyframes dotPulse {
+  0%,100% { box-shadow: 0 0 8px var(--accent-glow); }
+  50% { box-shadow: 0 0 22px rgba(107,99,255,0.7), 0 0 40px rgba(107,99,255,0.3); }
+}
+
+.nav-right { display: flex; align-items: center; gap: 8px; }
+.nav-links { display: flex; align-items: center; gap: 28px; list-style: none; margin-right: 8px; }
+.nav-links a { font-size: 13px; font-weight: 500; color: var(--text-mid); text-decoration: none; transition: color 0.15s; }
+.nav-links a:hover { color: var(--text-hi); }
+
+.nav-discord {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 14px; border-radius: 8px;
+  background: rgba(88,101,242,0.15);
+  border: 1px solid rgba(88,101,242,0.3);
+  color: #9da8ff;
+  font-size: 13px; font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nav-discord:hover {
+  background: rgba(88,101,242,0.25);
+  border-color: rgba(88,101,242,0.5);
+  color: #c5caff;
+  transform: translateY(-1px);
+}
+.nav-discord svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.nav-btn {
+  padding: 7px 16px; border-radius: 8px;
+  background: var(--accent); color: #fff !important;
+  font-weight: 600 !important; font-size: 13px !important;
+  text-decoration: none;
+  transition: box-shadow 0.2s, transform 0.15s !important;
+  box-shadow: 0 2px 16px rgba(107,99,255,0.3);
+}
+.nav-btn:hover { box-shadow: 0 4px 28px rgba(107,99,255,0.5) !important; transform: translateY(-1px); }
+
+/* ── Hero ────────────────────────────────────────── */
+.hero {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 100px 24px 64px;
+}
+
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px; border-radius: 100px;
+  background: rgba(107,99,255,0.1); border: 1px solid rgba(107,99,255,0.22);
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 28px;
+  animation: fadeUp 0.6s 0.15s ease both;
+}
+.eyebrow-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+
+.hero-h1 {
+  font-size: clamp(56px, 10vw, 110px); font-weight: 900;
+  letter-spacing: -4px; line-height: 0.95; margin-bottom: 28px;
+  animation: fadeUp 0.6s 0.25s ease both;
+}
+.hero-h1 .gradient {
+  background: linear-gradient(135deg, #8b85ff 0%, #6b63ff 40%, #a78bfa 80%, #c4b5fd 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.hero-sub {
+  font-size: 18px; font-weight: 400; color: var(--text-mid); line-height: 1.75;
+  max-width: 500px; margin-bottom: 44px;
+  animation: fadeUp 0.6s 0.35s ease both;
+}
+
+.hero-btns {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 72px;
+  animation: fadeUp 0.6s 0.45s ease both;
+}
+
+.btn-main {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px; border-radius: 10px;
+  background: var(--accent); color: #fff;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  text-decoration: none; border: none; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 4px 28px rgba(107,99,255,0.35);
+}
+.btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(107,99,255,0.5); }
+.btn-main svg { width: 16px; height: 16px; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px; border-radius: 10px;
+  background: transparent; color: var(--text-hi);
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  text-decoration: none; border: 1px solid var(--brd2); cursor: pointer;
+  transition: all 0.2s; backdrop-filter: blur(10px);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+/* ── Window mockup ───────────────────────────────── */
+.mockup-wrap { position: relative; width: 100%; max-width: 680px; animation: fadeUp 0.8s 0.55s ease both; }
+.mockup-glow { position: absolute; inset: -60px; background: radial-gradient(ellipse, rgba(107,99,255,0.15) 0%, transparent 65%); pointer-events: none; z-index: -1; }
+.window { background: rgba(13,13,19,0.82); backdrop-filter: blur(40px) saturate(160%); border: 1px solid var(--brd1); border-radius: 14px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(107,99,255,0.06), inset 0 1px 0 rgba(255,255,255,0.04); }
+.win-topbar { height: 40px; display: flex; align-items: center; padding: 0 14px; background: rgba(17,17,26,0.9); border-bottom: 1px solid var(--brd0); position: relative; }
+.win-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); margin-right: 8px; }
+.win-title { font-size: 12px; font-weight: 700; color: var(--text-hi); }
+.win-subtitle { font-size: 10px; color: var(--text-lo); margin: 0 auto; }
+.win-ctrl { width: 20px; height: 20px; border-radius: 6px; background: var(--bg3); border: 1px solid var(--brd0); margin-left: 6px; }
+.win-uline { position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); box-shadow: 0 0 8px var(--accent-glow); }
+.win-body { display: flex; height: 270px; }
+.win-sidebar { width: 112px; background: rgba(17,17,26,0.5); border-right: 1px solid var(--brd0); padding: 10px 6px; display: flex; flex-direction: column; gap: 3px; }
+.win-tab { height: 28px; padding: 0 10px 0 14px; border-radius: 8px; display: flex; align-items: center; font-size: 11px; font-weight: 600; color: var(--text-lo); position: relative; cursor: default; }
+.win-tab.active { background: rgba(22,22,33,1); color: var(--text-hi); border: 1px solid var(--accent); box-shadow: 0 0 14px rgba(107,99,255,0.2), inset 0 1px 0 rgba(107,99,255,0.1); }
+.win-tab.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 2px; height: 18px; border-radius: 2px; background: var(--accent); }
+.win-scroll { flex: 1; padding: 10px 8px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.win-sec-hdr { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; color: rgba(107,99,255,0.55); display: flex; align-items: center; gap: 6px; padding-left: 2px; }
+.win-sec-hdr::before { content: ''; width: 2px; height: 10px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+.win-card { background: rgba(17,17,26,0.7); border: 1px solid var(--brd0); border-radius: 10px; overflow: hidden; backdrop-filter: blur(8px); }
+.win-row { height: 36px; padding: 0 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(30,30,46,0.6); font-size: 11px; font-weight: 600; color: var(--text-mid); }
+.win-row:last-child { border-bottom: none; }
+.win-row span:first-child { flex: 1; }
+.win-pill { height: 20px; padding: 0 10px; border-radius: 6px; background: rgba(107,99,255,0.15); border: 1px solid var(--accent); font-size: 10px; font-weight: 700; color: var(--accent); display: flex; align-items: center; }
+.win-toggle { width: 36px; height: 18px; border-radius: 9px; background: var(--accent); position: relative; flex-shrink: 0; box-shadow: 0 0 10px rgba(107,99,255,0.4); }
+.win-toggle::after { content: ''; position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #fff; right: 3px; top: 3px; }
+.win-toggle.off { background: var(--bg4); border: 1px solid var(--brd1); box-shadow: none; }
+.win-toggle.off::after { right: unset; left: 3px; }
+.win-chevron { color: var(--text-lo); font-size: 12px; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:none; } }
+
+/* ── Stats bar ───────────────────────────────────── */
+.stats-bar { position: relative; z-index: 1; border-top: 1px solid var(--brd0); border-bottom: 1px solid var(--brd0); display: grid; grid-template-columns: repeat(4, 1fr); background: var(--brd0); gap: 1px; }
+.stat { padding: 36px 28px; background: var(--bg0); transition: background 0.2s; }
+.stat:hover { background: var(--bg2); }
+.stat-n { font-size: 38px; font-weight: 900; letter-spacing: -2px; background: linear-gradient(135deg, var(--accent), #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+.stat-l { font-size: 13px; font-weight: 500; color: var(--text-mid); margin-top: 6px; }
+
+/* ── Features ────────────────────────────────────── */
+.features { position: relative; z-index: 1; padding: 100px 40px; max-width: 1200px; margin: 0 auto; }
+.sec-tag { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 14px; }
+.sec-h2 { font-size: clamp(32px, 4vw, 56px); font-weight: 900; letter-spacing: -2.5px; line-height: 1.05; margin-bottom: 16px; }
+.sec-lead { font-size: 16px; color: var(--text-mid); max-width: 460px; line-height: 1.7; }
+
+.feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--brd0); border: 1px solid var(--brd0); border-radius: 16px; overflow: hidden; margin-top: 56px; }
+.feat-card { background: var(--bg1); padding: 32px 28px; display: flex; flex-direction: column; gap: 14px; transition: background 0.2s; position: relative; overflow: hidden; }
+.feat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(107,99,255,0.35), transparent); opacity: 0; transition: opacity 0.3s; }
+.feat-card:hover { background: rgba(17,17,26,0.95); }
+.feat-card:hover::after { opacity: 1; }
+.feat-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--accent-dim); border: 1px solid rgba(107,99,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.feat-title { font-size: 15px; font-weight: 700; }
+.feat-desc { font-size: 13px; color: var(--text-mid); line-height: 1.65; }
+
+/* ── API Showcase ────────────────────────────────── */
+.api-section {
+  position: relative; z-index: 1;
+  padding: 100px 40px;
+  background: var(--bg1);
+  border-top: 1px solid var(--brd0);
+  border-bottom: 1px solid var(--brd0);
+}
+.api-inner { max-width: 1200px; margin: 0 auto; }
+
+.api-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 56px;
+  align-items: start;
+}
+
+/* code panel */
+.code-panel {
+  background: rgba(9,9,13,0.9);
+  border: 1px solid var(--brd1);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+  position: sticky; top: 80px;
+}
+.code-topbar {
+  height: 40px; padding: 0 16px;
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(13,13,19,0.95);
+  border-bottom: 1px solid var(--brd0);
+}
+.code-dots { display: flex; gap: 6px; }
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-dot.r { background: #ff5f56; }
+.code-dot.y { background: #ffbd2e; }
+.code-dot.g { background: #27c93f; }
+.code-filename { font-family: var(--mono); font-size: 12px; color: var(--text-lo); margin-left: 4px; }
+.code-body {
+  padding: 24px;
+  font-family: var(--mono);
+  font-size: 13px; line-height: 1.75;
+  color: #c4b5fd;
+  overflow-x: auto;
+  max-height: 520px;
+  overflow-y: auto;
+}
+.code-body::-webkit-scrollbar { width: 4px; height: 4px; }
+.code-body::-webkit-scrollbar-track { background: transparent; }
+.code-body::-webkit-scrollbar-thumb { background: var(--brd1); border-radius: 2px; }
+
+.kw  { color: #8b85ff; }
+.fn  { color: #c4b5fd; }
+.st  { color: #86efac; }
+.nm  { color: #fb923c; }
+.cm  { color: var(--text-lo); }
+.ty  { color: #67e8f9; }
+
+/* component list */
+.comp-list {
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.comp-item {
+  background: rgba(13,13,19,0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--brd0);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex; align-items: flex-start; gap: 16px;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  cursor: default;
+  text-decoration: none;
+}
+.comp-item:hover {
+  border-color: rgba(107,99,255,0.28);
+  background: rgba(17,17,26,0.8);
+  transform: translateX(4px);
+}
+.comp-item-icon {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  background: var(--accent-dim); border: 1px solid rgba(107,99,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.comp-item-body { flex: 1; min-width: 0; }
+.comp-item-name {
+  font-size: 14px; font-weight: 700; color: var(--text-hi);
+  display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+}
+.comp-item-sig {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--text-lo);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.comp-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 4px;
+  background: rgba(107,99,255,0.12); color: var(--accent);
+  border: 1px solid rgba(107,99,255,0.18);
+}
+
+/* ── Install strip ───────────────────────────────── */
+.install-strip {
+  position: relative; z-index: 1;
+  padding: 48px 40px;
+  border-bottom: 1px solid var(--brd0);
+}
+.install-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;
+}
+.install-left h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+.install-left p { font-size: 14px; color: var(--text-mid); }
+.install-cmd {
+  display: flex; align-items: center; gap: 0;
+  background: rgba(9,9,13,0.9); border: 1px solid var(--brd1);
+  border-radius: 10px; overflow: hidden;
+  font-family: var(--mono); font-size: 13px;
+  flex-shrink: 0;
+}
+.install-label {
+  padding: 12px 16px;
+  background: var(--accent-dim);
+  color: var(--accent); font-weight: 600;
+  border-right: 1px solid var(--brd1);
+  font-size: 11px; letter-spacing: 0.5px;
+}
+.install-code { padding: 12px 18px; color: var(--text-mid); }
+.install-copy {
+  padding: 12px 16px; cursor: pointer;
+  color: var(--text-lo); font-size: 16px;
+  background: transparent; border: none; border-left: 1px solid var(--brd0);
+  transition: all 0.15s; font-family: inherit;
+}
+.install-copy:hover { background: var(--bg3); color: var(--accent); }
+
+/* ── CTA ─────────────────────────────────────────── */
+.cta-sec { position: relative; z-index: 1; padding: 120px 40px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 22px; }
+.cta-title { font-size: clamp(40px,6vw,72px); font-weight: 900; letter-spacing: -3px; line-height: 1.0; }
+.cta-sub { font-size: 17px; color: var(--text-mid); max-width: 400px; line-height: 1.7; }
+
+/* ── Footer ──────────────────────────────────────── */
+footer { position: relative; z-index: 1; border-top: 1px solid var(--brd0); padding: 28px 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+footer span { font-size: 13px; color: var(--text-lo); }
+.foot-links { display: flex; gap: 24px; }
+.foot-links a { font-size: 13px; color: var(--text-lo); text-decoration: none; transition: color 0.15s; }
+.foot-links a:hover { color: var(--accent); }
+
+/* ── Reveal ──────────────────────────────────────── */
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal.in { opacity: 1; transform: none; }
+.d1 { transition-delay: 0.1s; }
+.d2 { transition-delay: 0.2s; }
+.d3 { transition-delay: 0.3s; }
+
+@media(max-width:1000px) {
+  .api-layout { grid-template-columns: 1fr; }
+  .code-panel { position: static; }
+}
+@media(max-width:900px) {
+  .feat-grid { grid-template-columns: 1fr 1fr; }
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:600px) {
+  nav { padding: 0 20px; }
+  .nav-links { gap: 16px; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .hero-h1 { letter-spacing: -2.5px; }
+  footer { flex-direction: column; }
+  .install-inner { flex-direction: column; align-items: flex-start; }
+  .install-cmd { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="ambient">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="noise"></div>
+
+<!-- Nav -->
+<nav>
+  <a href="index.html" class="logo">
+    <div class="logo-dot"></div>
+    Artemis
+  </a>
+  <div class="nav-right">
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#api">API</a></li>
+      <li><a href="/Artemis/docs">Docs</a></li>
+    </ul>
+    <a href="https://valencea.xyz/discord" target="_blank" class="nav-discord">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.031.052a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Support
+    </a>
+    <a href="/Artemis/docs" class="nav-btn">Get Started →</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    <div class="eyebrow-dot"></div>
+    Artemis UI Library &nbsp;·&nbsp; v1.0
+  </div>
+  <h1 class="hero-h1">
+    Build<br><span class="gradient">beautiful</span><br>Roblox UIs.
+  </h1>
+  <p class="hero-sub">
+    Artemis is a sleek frosted-glass UI library for Roblox. Tabs, toggles, sliders, dropdowns, notifications — all in one ModuleScript.
+  </p>
+  <div class="hero-btns">
+    <a href="/Artemis/docs" class="btn-main">
+      Read the docs
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+    </a>
+    <a href="/Artemis/docs#example" class="btn-ghost">View example script</a>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat reveal"><div class="stat-n">8+</div><div class="stat-l">Components</div></div>
+  <div class="stat reveal d1"><div class="stat-n">1</div><div class="stat-l">ModuleScript</div></div>
+  <div class="stat reveal d2"><div class="stat-n">∞</div><div class="stat-l">Accent Colors</div></div>
+  <div class="stat reveal d3"><div class="stat-n">0</div><div class="stat-l">Dependencies</div></div>
+</div>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="reveal">
+    <span class="sec-tag">Why Artemis</span>
+    <h2 class="sec-h2">Everything you need,<br>nothing you don't.</h2>
+    <p class="sec-lead">Built from scratch for Roblox with a focus on aesthetics, performance, and developer experience.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon">✦</div>
+      <div class="feat-title">Frosted Glass Design</div>
+      <div class="feat-desc">Deep dark palette with translucent surfaces, soft accent glows and layered shadows that look premium in any game.</div>
+    </div>
+    <div class="feat-card reveal d1">
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Smooth Animations</div>
+      <div class="feat-desc">Every interaction uses Quint and Back easing curves. Toggles, sliders, dropdowns and tab switches all feel alive.</div>
+    </div>
+    <div class="feat-card reveal d2">
+      <div class="feat-icon">🎨</div>
+      <div class="feat-title">Fully Themeable</div>
+      <div class="feat-desc">Pass any <code style="font-size:12px;color:var(--accent)">Accent</code> color to <code style="font-size:12px;color:var(--accent)">Window()</code> and every glow, border and pill updates automatically.</div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon">📦</div>
+      <div class="feat-title">Zero Dependencies</div>
+      <div class="feat-desc">One ModuleScript, no external packages. Drop it in ReplicatedStorage and require from any LocalScript.</div>
+    </div>
+    <div class="feat-card reveal d1">
+      <div class="feat-icon">🔔</div>
+      <div class="feat-title">Notifications</div>
+      <div class="feat-desc">Slide-in toast notifications with a countdown progress bar, configurable duration and left/right side positioning.</div>
+    </div>
+    <div class="feat-card reveal d2">
+      <div class="feat-icon">⌨</div>
+      <div class="feat-title">Toggle Keybind</div>
+      <div class="feat-desc">Assign any key to show and hide the window. Uses a clean <code style="font-size:12px;color:var(--accent)">Visible</code> toggle so all state is preserved.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick install -->
+<div class="install-strip reveal">
+  <div class="install-inner">
+    <div class="install-left">
+      <h3>One line to get started.</h3>
+      <p>Refer <code style="font-family:var(--mono);font-size:12px;color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:4px">ArtemisUI</code> as a loadstring, then call it as a module.</p>
+    </div>
+    <div class="install-cmd">
+      <div class="install-label">LOADSTRING</div>
+      <div class="install-code" id="installCode">local A = loadstring(game:HttpGet'https://valencea.xyz/Artemis/loader.lua')()</div>
+      <button class="install-copy" id="copyBtn" onclick="copyInstall()" title="Copy">⎘</button>
+    </div>
+  </div>
+</div>
+
+<!-- API Showcase -->
+<section class="api-section" id="api">
+  <div class="api-inner">
+    <div class="reveal">
+      <span class="sec-tag">API Reference</span>
+      <h2 class="sec-h2">Every component.<br>Simple API.</h2>
+      <p class="sec-lead">Eight components, three levels deep. Window → Tab → Section → component. That's all there is to it.</p>
+    </div>
+
+    <div class="api-layout">
+
+      <!-- Left: component list -->
+      <div class="comp-list reveal">
+
+        <a href="/Artemis/docs#window" class="comp-item">
+          <div class="comp-item-icon">⬡</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Window <span class="comp-badge">Root</span></div>
+            <div class="comp-item-sig">ArtemisUI:Window({ Title, Subtitle, Accent })</div>
+          </div>
+        </a>
+
+        <a href="/Artemis/docs#button" class="comp-item">
+          <div class="comp-item-icon">▷</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Button</div>
+            <div class="comp-item-sig">sec:Button(text, callback)</div>
+          </div>
+        </a>
+
+        <a href="/Artemis/docs#toggle" class="comp-item">
+          <div class="comp-item-icon">◉</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Toggle <span class="comp-badge">Returns obj</span></div>
+            <div class="comp-item-sig">sec:Toggle(text, default, callback)</div>
+          </div>
+        </a>
+
+        <a href="/Artemis/docs#slider" class="comp-item">
+          <div class="comp-item-icon">◫</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Slider <span class="comp-badge">Returns obj</span></div>
+            <div class="comp-item-sig">sec:Slider(text, min, max, default, callback)</div>
+          </div>
+        </a>
+
+        <a href="/Artemis/docs#dropdown" class="comp-item">
+          <div class="comp-item-icon">≡</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Dropdown <span class="comp-badge">Returns obj</span></div>
+            <div class="comp-item-sig">sec:Dropdown(text, options, callback)</div>
+          </div>
+        </a>
+
+        <a href="/Artemis/docs#input" class="comp-item">
+          <div class="comp-item-icon">▭</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Input <span class="comp-badge">Returns obj</span></div>
+            <div class="comp-item-sig">sec:Input(label, placeholder, callback)</div>
+          </div>
+        </a>
+
+        <a href="/Artemis/docs#keybind" class="comp-item">
+          <div class="comp-item-icon">⌘</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Keybind <span class="comp-badge">Returns obj</span></div>
+            <div class="comp-item-sig">sec:Keybind(text, default, callback)</div>
+          </div>
+        </a>
+
+        <a href="/Artemis/docs#notify" class="comp-item">
+          <div class="comp-item-icon">◈</div>
+          <div class="comp-item-body">
+            <div class="comp-item-name">Notify</div>
+            <div class="comp-item-sig">win:Notify(title, body, duration, side)</div>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- Right: code preview -->
+      <div class="code-panel reveal d1">
+        <div class="code-topbar">
+          <div class="code-dots">
+            <div class="code-dot r"></div>
+            <div class="code-dot y"></div>
+            <div class="code-dot g"></div>
+          </div>
+          <span class="code-filename">Script.lua</span>
+        </div>
+        <div class="code-body"><pre><span class="kw">local</span> <span class="ty">A</span> = <span class="fn">loadstring</span>(game:HttpGet'https://valencea.xyz/Artemis/loader.lua')()
+
+<span class="kw">local</span> <span class="ty">win</span> = <span class="ty">A</span>:<span class="fn">Window</span>({
+    Title  = <span class="st">"MyPanel"</span>,
+    Accent = <span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">108</span>, <span class="nm">99</span>, <span class="nm">255</span>),
+})
+
+<span class="ty">win</span>:<span class="fn">SetToggleKey</span>(Enum.KeyCode.RightShift)
+<span class="ty">win</span>:<span class="fn">Notify</span>(<span class="st">"Loaded"</span>, <span class="st">"RightShift to toggle."</span>, <span class="nm">4</span>, <span class="st">"right"</span>)
+
+<span class="kw">local</span> <span class="ty">tab</span> = <span class="ty">win</span>:<span class="fn">Tab</span>(<span class="st">"Main"</span>)
+<span class="kw">local</span> <span class="ty">sec</span> = <span class="ty">tab</span>:<span class="fn">Section</span>(<span class="st">"Combat"</span>)
+
+<span class="ty">sec</span>:<span class="fn">Button</span>(<span class="st">"Kill Aura"</span>, <span class="kw">function</span>()
+    <span class="fn">print</span>(<span class="st">"activated"</span>)
+<span class="kw">end</span>)
+
+<span class="kw">local</span> <span class="ty">toggle</span> = <span class="ty">sec</span>:<span class="fn">Toggle</span>(<span class="st">"ESP"</span>, <span class="kw">false</span>, <span class="kw">function</span>(<span class="ty">v</span>)
+    <span class="fn">print</span>(<span class="st">"ESP:"</span>, <span class="ty">v</span>)
+<span class="kw">end</span>)
+
+<span class="kw">local</span> <span class="ty">spd</span> = <span class="ty">sec</span>:<span class="fn">Slider</span>(
+    <span class="st">"Walk Speed"</span>, <span class="nm">16</span>, <span class="nm">300</span>, <span class="nm">16</span>,
+    <span class="kw">function</span>(<span class="ty">v</span>)
+        <span class="kw">local</span> <span class="ty">hum</span> = game.Players.LocalPlayer
+            .Character:FindFirstChild(<span class="st">"Humanoid"</span>)
+        <span class="kw">if</span> <span class="ty">hum</span> <span class="kw">then</span> <span class="ty">hum</span>.WalkSpeed = <span class="ty">v</span> <span class="kw">end</span>
+    <span class="kw">end</span>
+)
+
+<span class="ty">sec</span>:<span class="fn">Dropdown</span>(<span class="st">"Team"</span>,
+    {<span class="st">"Red"</span>, <span class="st">"Blue"</span>, <span class="st">"Neutral"</span>},
+    <span class="kw">function</span>(<span class="ty">v</span>) <span class="fn">print</span>(<span class="ty">v</span>) <span class="kw">end</span>
+)
+
+<span class="cm">-- Reset everything programmatically</span>
+<span class="kw">local</span> <span class="ty">reset</span> = <span class="ty">tab</span>:<span class="fn">Section</span>(<span class="st">"Actions"</span>)
+<span class="ty">reset</span>:<span class="fn">Button</span>(<span class="st">"Reset All"</span>, <span class="kw">function</span>()
+    <span class="ty">toggle</span>:<span class="fn">Set</span>(<span class="kw">false</span>)
+    <span class="ty">spd</span>:<span class="fn">Set</span>(<span class="nm">16</span>)
+    <span class="ty">win</span>:<span class="fn">Notify</span>(<span class="st">"Reset"</span>, <span class="st">"Defaults restored."</span>, <span class="nm">3</span>, <span class="st">"right"</span>)
+<span class="kw">end</span>)</pre></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec">
+  <h2 class="cta-title reveal">
+    Start building with<br>
+    <span style="background:linear-gradient(135deg,var(--accent),#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Artemis</span>.
+  </h2>
+  <p class="cta-sub reveal d1">One require. Full UI. Ship faster.</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center" class="reveal d2">
+    <a href="/Artemis/docs" class="btn-main">Read the docs →</a>
+    <a href="https://discord.gg/your-invite" target="_blank" class="btn-ghost">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.031.052a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+      Join Discord
+    </a>
+  </div>
+</section>
+
+<footer>
+  <span>© 2025 Artemis UI &nbsp;·&nbsp; Built for Roblox</span>
+  <div class="foot-links">
+    <a href="index.html">Home</a>
+    <a href="/Artemis/docs">Docs</a>
+    <a href="/Artemis/docs#example">Example</a>
+    <a href="https://discord.gg/your-invite" target="_blank">Discord</a>
+  </div>
+</footer>
+
+<script>
+function copyInstall() {
+  const text = document.getElementById('installCode').textContent
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn')
+    btn.textContent = '✓'
+    btn.style.color = '#4ade80'
+    setTimeout(() => { btn.textContent = '⎘'; btn.style.color = '' }, 1800)
+  })
+}
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in') })
+}, { threshold: 0.12 })
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el))
+</script>
+</body>
+</html>

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artemis — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="https://valencea.xyz/Artemis/icon.png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#09090d;--bg1:#0d0d13;--bg2:#11111a;--bg3:#16162a;--bg4:#1c1c2a;
+  --brd0:#1e1e2e;--brd1:#2c2c42;--brd2:#3c3c5a;
+  --accent:#6b63ff;--accent-glow:rgba(107,99,255,0.35);--accent-dim:rgba(107,99,255,0.1);
+  --text-hi:#f0eeff;--text-mid:#9690c3;--text-lo:#44406c;
+  --code-bg:#0d0d15;--mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;color-scheme:dark;scrollbar-color:var(--brd1) var(--bg0);scrollbar-width:thin}
+html::-webkit-scrollbar{width:10px;height:10px}
+html::-webkit-scrollbar-track{background:var(--bg0)}
+html::-webkit-scrollbar-thumb{background:var(--brd1);border-radius:6px;border:2px solid var(--bg0)}
+html::-webkit-scrollbar-thumb:hover{background:var(--brd2)}
+html::-webkit-scrollbar-corner{background:var(--bg0)}
+body{font-family:'Inter',sans-serif;background:var(--bg0);color:var(--text-hi);overflow-x:hidden;line-height:1.6}
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.orb-1{width:500px;height:500px;background:radial-gradient(circle,rgba(107,99,255,0.12) 0%,transparent 70%);top:-150px;left:-150px}
+.orb-2{width:350px;height:350px;background:radial-gradient(circle,rgba(107,99,255,0.07) 0%,transparent 70%);bottom:5%;right:-80px}
+.noise{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:150px}
+nav{position:fixed;top:0;left:0;right:0;height:56px;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:rgba(9,9,13,0.8);backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--brd0)}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:800;letter-spacing:-0.4px;color:var(--text-hi);text-decoration:none}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent-glow);animation:dotPulse 2.4s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 8px var(--accent-glow)}50%{box-shadow:0 0 22px rgba(107,99,255,0.7)}}
+.nav-links{display:flex;align-items:center;gap:28px;list-style:none}
+.nav-links a{font-size:13px;font-weight:500;color:var(--text-mid);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--text-hi)}
+.nav-links a.active{color:var(--accent)}
+.nav-btn{padding:7px 16px;border-radius:8px;background:var(--accent);color:#fff !important;font-weight:600 !important;box-shadow:0 2px 16px rgba(107,99,255,0.3)}
+.layout{display:flex;padding-top:56px;min-height:100vh;position:relative;z-index:1}
+.sidebar{width:240px;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:28px 0;border-right:1px solid var(--brd0);background:rgba(9,9,13,0.5);backdrop-filter:blur(16px);scrollbar-width:thin;scrollbar-color:var(--brd1) transparent}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-track{background:transparent}
+.sidebar::-webkit-scrollbar-thumb{background:var(--brd1);border-radius:3px}
+.sidebar::-webkit-scrollbar-thumb:hover{background:var(--brd2)}
+.sb-group{margin-bottom:24px;padding:0 16px}
+.sb-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-lo);padding:0 8px;margin-bottom:6px;display:block}
+.sb-link{display:block;padding:7px 10px;border-radius:7px;font-size:13px;font-weight:500;color:var(--text-mid);text-decoration:none;transition:all 0.15s}
+.sb-link:hover{color:var(--text-hi);background:var(--bg3)}
+.sb-link.active{color:var(--accent);background:rgba(107,99,255,0.1)}
+.content{flex:1;padding:56px 64px;max-width:820px}
+h1{font-size:48px;font-weight:900;letter-spacing:-2.5px;line-height:1.05;margin-bottom:20px}
+h2{font-size:28px;font-weight:800;letter-spacing:-1px;margin-top:64px;margin-bottom:16px;padding-top:64px;border-top:1px solid var(--brd0)}
+h2:first-of-type{border-top:none;margin-top:0;padding-top:0}
+h3{font-size:18px;font-weight:700;letter-spacing:-0.3px;margin-top:36px;margin-bottom:12px;color:var(--text-hi)}
+p{font-size:15px;color:var(--text-mid);line-height:1.75;margin-bottom:16px}
+p:last-child{margin-bottom:0}
+.lead{font-size:18px;color:var(--text-mid);line-height:1.7;margin-bottom:40px;max-width:600px}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:0.5px}
+.badge-accent{background:rgba(107,99,255,0.12);border:1px solid rgba(107,99,255,0.22);color:var(--accent)}
+.badge-green{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);color:#4ade80}
+.badge-new{background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.25);color:#fb923c}
+.badge-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:32px}
+.code-wrap{position:relative;margin:20px 0;isolation:isolate}
+pre{background:var(--code-bg);border:1px solid var(--brd1);border-radius:12px;padding:24px;overflow-x:auto;margin:0;position:relative;z-index:0;scrollbar-color:var(--brd1) var(--code-bg);scrollbar-width:thin}
+pre::-webkit-scrollbar{height:8px;width:8px}
+pre::-webkit-scrollbar-track{background:var(--code-bg)}
+pre::-webkit-scrollbar-thumb{background:var(--brd1);border-radius:4px}
+pre::-webkit-scrollbar-thumb:hover{background:var(--brd2)}
+pre::before{content:attr(data-lang);position:absolute;top:12px;right:44px;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text-lo);letter-spacing:1px;text-transform:uppercase}
+code{font-family:var(--mono);font-size:13px;line-height:1.7;color:#c4b5fd}
+p code,li code{font-family:var(--mono);font-size:12px;background:rgba(107,99,255,0.1);border:1px solid rgba(107,99,255,0.18);border-radius:4px;padding:1px 6px;color:var(--accent)}
+.copy-btn{position:absolute;top:10px;right:10px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--brd1);border-radius:6px;cursor:pointer;opacity:0;transition:opacity 0.15s,background 0.15s,border-color 0.15s;z-index:10}
+.code-wrap:hover .copy-btn{opacity:1}
+.copy-btn:hover{background:var(--bg4);border-color:var(--brd2)}
+.copy-btn.copied{background:rgba(34,197,94,0.1);border-color:rgba(34,197,94,0.3)}
+.copy-btn svg{width:13px;height:13px;stroke:var(--text-mid);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke 0.15s}
+.copy-btn.copied svg{stroke:#4ade80}
+.kw{color:#8b85ff}.fn{color:#c4b5fd}.st{color:#86efac}.nm{color:#fb923c}.cm{color:#44406c}.ty{color:#67e8f9}.pm{color:#f0eeff}
+.param-table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13px}
+.param-table th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--brd1);color:var(--text-lo);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.param-table td{padding:12px 14px;border-bottom:1px solid var(--brd0);color:var(--text-mid);vertical-align:top}
+.param-table td:first-child{color:var(--accent);font-family:var(--mono);font-size:12px;white-space:nowrap}
+.param-table td:nth-child(2){color:var(--text-lo);font-family:var(--mono);font-size:11px}
+.param-table tr:last-child td{border-bottom:none}
+.param-table tr:hover td{background:rgba(107,99,255,0.04)}
+.method{background:rgba(13,13,19,0.8);border:1px solid var(--brd0);border-left:3px solid var(--accent);border-radius:10px;padding:20px 24px;margin:20px 0}
+.method-sig{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text-hi);margin-bottom:10px}
+.method-sig .mn{color:#c4b5fd}
+.method-sig .mp{color:#f0eeff}
+.method-sig .mt{color:var(--text-lo)}
+.method-desc{font-size:13px;color:var(--text-mid);line-height:1.65}
+.callout{display:flex;gap:14px;background:rgba(107,99,255,0.07);border:1px solid rgba(107,99,255,0.18);border-radius:10px;padding:18px 20px;margin:20px 0}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.callout p{margin:0;font-size:13px;color:var(--text-mid);line-height:1.65}
+.callout strong{color:var(--text-hi)}
+.callout-warn{background:rgba(251,146,60,0.07);border-color:rgba(251,146,60,0.2)}
+section[id]{scroll-margin-top:80px}
+@media(max-width:900px){.sidebar{display:none}.content{padding:40px 24px}h1{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="ambient"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+<div class="noise"></div>
+<nav>
+  <a href="/Artemis/index.html" class="logo"><div class="logo-dot"></div>Artemis</a>
+  <ul class="nav-links">
+    <li><a href="/Artemis/index.html">Home</a></li>
+    <li><a href="#introduction" class="active">Docs</a></li>
+    <li><a href="#example">Example</a></li>
+    <li><a href="/Artemis/index.html#components" class="nav-btn">Components &rarr;</a></li>
+  </ul>
+</nav>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-group">
+      <span class="sb-label">Getting Started</span>
+      <a href="#introduction" class="sb-link active">Introduction</a>
+      <a href="#installation" class="sb-link">Installation</a>
+      <a href="#quick-start" class="sb-link">Quick Start</a>
+    </div>
+    <div class="sb-group">
+      <span class="sb-label">API Reference</span>
+      <a href="#window" class="sb-link">Window</a>
+      <a href="#loading" class="sb-link">Loading Animation</a>
+      <a href="#keysystem" class="sb-link">KeySystem</a>
+      <a href="#tab" class="sb-link">Tab</a>
+      <a href="#section" class="sb-link">Section</a>
+    </div>
+    <div class="sb-group">
+      <span class="sb-label">Components</span>
+      <a href="#button" class="sb-link">Button</a>
+      <a href="#toggle" class="sb-link">Toggle</a>
+      <a href="#slider" class="sb-link">Slider</a>
+      <a href="#colorpicker" class="sb-link">ColorPicker</a>
+      <a href="#dropdown" class="sb-link">Dropdown</a>
+      <a href="#multidropdown" class="sb-link">MultiDropdown ✦</a>
+      <a href="#input" class="sb-link">Input</a>
+      <a href="#keybind" class="sb-link">Keybind</a>
+      <a href="#paragraph" class="sb-link">Paragraph</a>
+      <a href="#separator" class="sb-link">Separator</a>
+    </div>
+    <div class="sb-group">
+      <span class="sb-label">Window Methods</span>
+      <a href="#notify" class="sb-link">Notify</a>
+      <a href="#toggle-key" class="sb-link">SetToggleKey</a>
+      <a href="#setaccent" class="sb-link">SetAccent ✦</a>
+      <a href="#settheme" class="sb-link">SetTheme ✦</a>
+      <a href="#getthemes" class="sb-link">GetThemes ✦</a>
+      <a href="#search" class="sb-link">Search</a>
+      <a href="#save" class="sb-link">Save</a>
+      <a href="#loadconfig" class="sb-link">LoadConfig</a>
+      <a href="#loadedflags" class="sb-link">LoadedFlags</a>
+      <a href="#destroy" class="sb-link">Destroy</a>
+    </div>
+    <div class="sb-group">
+      <span class="sb-label">Features</span>
+      <a href="#icons" class="sb-link">Icons</a>
+      <a href="#config" class="sb-link">Config Saving</a>
+      <a href="#fadetoggle" class="sb-link">FadeToggle</a>
+      <a href="#altlibrary" class="sb-link">Alt Icon Library</a>
+      <a href="#mobile" class="sb-link">Mobile FAB ✦</a>
+    </div>
+    <div class="sb-group">
+      <span class="sb-label">More</span>
+      <a href="#example" class="sb-link">Full Example</a>
+    </div>
+  </aside>
+  <main class="content">
+
+    <section id="introduction">
+      <div class="badge-row">
+        <span class="badge badge-accent">v1.4</span>
+        <span class="badge badge-green">&#9679; Stable</span>
+        <span class="badge badge-new">✦ New in v1.4</span>
+      </div>
+      <h1>Documentation</h1>
+      <p class="lead">Artemis is a frosted-glass Roblox UI library. One ModuleScript, zero dependencies, fully themeable with any accent color.</p>
+      <div class="callout">
+        <div class="callout-icon">✦</div>
+        <p><strong>All components live inside a Section, inside a Tab, inside a Window.</strong> This three-level hierarchy keeps your UI organized and the code readable.</p>
+      </div>
+      <div class="callout">
+        <div class="callout-icon">&#x1F195;</div>
+        <p><strong>v1.4 adds:</strong> <strong>MultiDropdown</strong> component, <strong>SetAccent</strong> (with rainbow mode), <strong>SetTheme</strong> / <strong>GetThemes</strong>, and <strong>mobile FAB</strong> for touch devices. v1.3 added built-in <strong>search overlay</strong>, <strong>ColorPicker</strong>, <strong>KeySystem</strong>, <strong>FadeToggle</strong>, and <strong>AltIconLibrary</strong>.</p>
+      </div>
+    </section>
+
+    <section id="installation">
+      <h2>Installation</h2>
+      <p>Reference <code>ArtemisUI</code> using loadstring from the official URL.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="ty">ArtemisUI</span> = <span class="fn">loadstring</span>(<span class="fn">game:HttpGet</span>(<span class="st">"https://valencea.xyz/Artemis/loader.lua"</span>))()</code></pre>
+      </div>
+    </section>
+
+    <section id="quick-start">
+      <h2>Quick Start</h2>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="ty">ArtemisUI</span> = <span class="fn">loadstring</span>(<span class="fn">game:HttpGet</span>(<span class="st">"https://valencea.xyz/Artemis/loader.lua"</span>))()
+
+<span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({
+    Title            = <span class="st">"My Panel"</span>,
+    Subtitle         = <span class="st">"v1.0"</span>,
+    Accent           = <span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">108</span>, <span class="nm">99</span>, <span class="nm">255</span>),
+    LoadingAnimation = <span class="nm">2</span>,
+})
+
+<span class="kw">local</span> <span class="pm">sec</span> = <span class="pm">win</span>:<span class="fn">Tab</span>(<span class="st">"#home Main"</span>):<span class="fn">Section</span>(<span class="st">"#zap Combat"</span>)
+
+<span class="pm">sec</span>:<span class="fn">Toggle</span>(<span class="st">"Enabled"</span>, <span class="kw">false</span>, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="fn">print</span>(<span class="st">"toggled:"</span>, <span class="pm">v</span>)
+<span class="kw">end</span>)</code></pre>
+      </div>
+    </section>
+
+    <section id="window">
+      <h2>Window</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">ArtemisUI</span>:<span class="fn">Window</span>(<span class="mp">cfg</span>: <span class="mt">table</span>) &rarr; <span class="mt">WinObj</span></div>
+        <div class="method-desc">Creates and animates in a new window. Only one window should exist at a time. The returned <code>WinObj</code> also exposes a <code>.Flags</code> table containing all current flag values, identical to what <code>:LoadedFlags()</code> returns.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td>Title</td><td>string</td><td>"ArtemisUI"</td><td>Window title shown in the topbar.</td></tr>
+        <tr><td>Subtitle</td><td>string</td><td>""</td><td>Small subtitle shown after a · separator in the topbar.</td></tr>
+        <tr><td>Accent</td><td>Color3</td><td>RGB(108,99,255)</td><td>Accent color applied everywhere: glows, borders, pills, indicators.</td></tr>
+        <tr><td>Icon</td><td>string</td><td>nil</td><td>Lucide icon name displayed next to the title in the topbar.</td></tr>
+        <tr><td>ConfigFile</td><td>string</td><td>nil</td><td>Filename (no extension) for JSON config saving. Enables Flags and auto-save. File is written to <code>ArtemisUI/&lt;name&gt;.json</code>.</td></tr>
+        <tr><td>LoadingAnimation</td><td>number</td><td>1</td><td><code>1</code> = fullscreen splash overlay. <code>2</code> = window-sized morph card. Any other value skips the animation entirely.</td></tr>
+        <tr><td>FadeToggle</td><td>boolean</td><td>false</td><td>When true, the window hides/shows with a fade overlay instead of shrinking to zero size.</td></tr>
+        <tr><td>AltIconLibrary</td><td>string</td><td>nil</td><td>URL to a custom icon library. Use the <code>@</code> prefix on labels to pull icons from this library.</td></tr>
+        <tr><td>KeySystem</td><td>table</td><td>nil</td><td>Enables a key validation modal before the window appears. See <a href="#keysystem">KeySystem</a>.</td></tr>
+      </table>
+      <div class="callout">
+        <div class="callout-icon">&#9432;</div>
+        <p>You can set <code>getgenv().Scale = 1.1</code> before creating the window to override the auto-scale that Artemis computes from the viewport size.</p>
+      </div>
+    </section>
+
+    <section id="keysystem">
+      <h2>KeySystem</h2>
+      <p>Pass a <code>KeySystem</code> table in the window config to show a blocking modal before the main window opens. The user must pass validation to proceed.</p>
+      <table class="param-table">
+        <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td>Title</td><td>string</td><td>"Key Required"</td><td>Title text of the modal card.</td></tr>
+        <tr><td>Subtitle</td><td>string</td><td>"Enter your key to continue."</td><td>Instruction text below the title.</td></tr>
+        <tr><td>Placeholder</td><td>string</td><td>"Paste key here..."</td><td>Placeholder text for the key input box.</td></tr>
+        <tr><td>GetKeyUrl</td><td>string</td><td>nil</td><td>If provided, a "Get Key →" button opens this URL in the browser via <code>GuiService</code>.</td></tr>
+        <tr><td>OnValidate</td><td>function(keyInput)</td><td>nil</td><td>Receives a <code>KeyInput</code> object. Call <code>:Get()</code> on it to read the entered text. Return <code>true</code> to accept, anything else to reject (shakes the card and shows an error).</td></tr>
+      </table>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({
+    Title = <span class="st">"Premium Panel"</span>,
+    KeySystem = {
+        Title      = <span class="st">"License Key"</span>,
+        Subtitle   = <span class="st">"Enter your key to continue"</span>,
+        GetKeyUrl  = <span class="st">"https://yourstore.com/buy"</span>,
+        OnValidate = <span class="kw">function</span>(<span class="pm">input</span>)
+            <span class="kw">return</span> <span class="pm">input</span>:<span class="fn">Get</span>() == <span class="st">"secret123"</span>
+        <span class="kw">end</span>
+    }
+})</code></pre>
+      </div>
+    </section>
+
+    <section id="loading">
+      <h2>Loading Animation</h2>
+      <h3>Type 1 — Fullscreen Splash</h3>
+      <p>A separate fullscreen overlay covers the entire screen. The title sweeps in from below, a progress bar fills, then everything fades and the main window opens. The overlay uses a separate <code>ScreenGui</code> at <code>DisplayOrder 1000</code> so it sits above everything.</p>
+      <h3>Type 2 — Window Morph</h3>
+      <p>A card the exact size of the window bounces in from zero using a <code>Back</code> easing. The loading sequence plays inside it, then it seamlessly transitions into the actual window with no positional jump.</p>
+      <h3>No Animation</h3>
+      <p>Pass any value other than <code>1</code> or <code>2</code> (e.g. <code>0</code>) to skip the loader entirely and go straight to the KeySystem check (or the window itself).</p>
+    </section>
+
+    <section id="tab">
+      <h2>Tab</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">Tab</span>(<span class="mp">name</span>: <span class="mt">string</span>) &rarr; <span class="mt">TabObj</span></div>
+        <div class="method-desc">Adds a button to the tab bar and a scrollable content pane. The first tab created is auto-activated. Tab buttons support icon prefixes.</div>
+      </div>
+      <p>Prefix the name with <code>#iconname </code> for a Lucide icon or <code>@iconname </code> for an icon from the <code>AltIconLibrary</code>. The icon and the display text are parsed automatically — the full string including the prefix is used as the internal tab key.</p>
+    </section>
+
+    <section id="section">
+      <h2>Section</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">tab</span>:<span class="fn">Section</span>(<span class="mp">name</span>: <span class="mt">string</span>) &rarr; <span class="mt">SecObj</span></div>
+        <div class="method-desc">Groups components inside a labeled card with an accent top-line and automatic dividers between rows. Supports the same <code>#</code> and <code>@</code> icon prefixes as tabs. The card border brightens on hover.</div>
+      </div>
+    </section>
+
+    <section id="button">
+      <h2>Button</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Button</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">callback</span>: <span class="mt">function</span>)</div>
+        <div class="method-desc">Clickable row with a chevron pill on the right. Plays a ripple on press. If the callback throws, the row briefly flashes red and shows "Error" before restoring. Auto-registered in the search overlay — clicking the result fires the callback directly.</div>
+      </div>
+    </section>
+
+    <section id="toggle">
+      <h2>Toggle</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Toggle</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">default</span>: <span class="mt">boolean</span>, <span class="mp">callback</span>: <span class="mt">function</span>, <span class="mp">opts</span>?: <span class="mt">table</span>) &rarr; <span class="mt">ToggleObj</span></div>
+        <div class="method-desc">Animated pill toggle switch. The knob uses a <code>Back</code> easing for a satisfying snap. Clicking the result in the search overlay flips the toggle directly.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Set(bool)</td><td>Explicitly set the state. Animates and fires the callback unless value is unchanged.</td></tr>
+        <tr><td>:Get()</td><td>Returns current boolean state.</td></tr>
+        <tr><td>:Toggle()</td><td>Flips the current state.</td></tr>
+      </table>
+      <p><strong>Options:</strong> <code>{ Flag = "string" }</code> — auto-saves and restores the boolean when <code>ConfigFile</code> is set.</p>
+    </section>
+
+    <section id="slider">
+      <h2>Slider</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Slider</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">min</span>: <span class="mt">number</span>, <span class="mp">max</span>: <span class="mt">number</span>, <span class="mp">default</span>: <span class="mt">number</span>, <span class="mp">callback</span>: <span class="mt">function</span>, <span class="mp">opts</span>?: <span class="mt">table</span>) &rarr; <span class="mt">SliderObj</span></div>
+        <div class="method-desc">Draggable slider with a live value pill. The knob grows on press and snaps back on release. The fill track uses a gradient overlay for a subtle depth effect.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Get()</td><td>Returns the current numeric value.</td></tr>
+        <tr><td>:Set(number)</td><td>Sets the value, updates visuals, and fires the callback.</td></tr>
+      </table>
+      <p><strong>Options:</strong> <code>{ Flag = "string", Increment = number }</code> — <code>Increment</code> snaps values to multiples (e.g. <code>5</code> gives steps of 5). Defaults to <code>1</code>.</p>
+    </section>
+
+    <section id="colorpicker">
+      <h2>ColorPicker</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">ColorPicker</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">default</span>: <span class="mt">Color3</span>, <span class="mp">callback</span>: <span class="mt">function</span>, <span class="mp">opts</span>?: <span class="mt">table</span>) &rarr; <span class="mt">ColorPickerObj</span></div>
+        <div class="method-desc">Clicking the swatch opens a floating HSV panel with a saturation/value square, a hue slider, a hex input, and a live preview chip. The panel positions itself intelligently to stay within the window bounds and flips above the row if there isn't room below. Clicking outside closes it.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Get()</td><td>Returns the current <code>Color3</code>.</td></tr>
+        <tr><td>:Set(Color3)</td><td>Sets the color, updates all picker visuals, and fires the callback.</td></tr>
+      </table>
+      <p><strong>Options:</strong> <code>{ Flag = "string" }</code> — saves and restores the color as a <code>{R, G, B}</code> array (0–1 range) in the config file.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">sec</span>:<span class="fn">ColorPicker</span>(<span class="st">"ESP Color"</span>, <span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">255</span>,<span class="nm">100</span>,<span class="nm">100</span>), <span class="kw">function</span>(<span class="pm">c</span>)
+    <span class="fn">print</span>(<span class="st">"Selected:"</span>, <span class="pm">c</span>)
+<span class="kw">end</span>, { Flag = <span class="st">"espColor"</span> })</code></pre>
+      </div>
+    </section>
+
+    <section id="dropdown">
+      <h2>Dropdown</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Dropdown</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">options</span>: <span class="mt">{string}</span>, <span class="mp">callback</span>: <span class="mt">function</span>, <span class="mp">opts</span>?: <span class="mt">table</span>) &rarr; <span class="mt">DropObj</span></div>
+        <div class="method-desc">Animated expanding dropdown. Includes a built-in search box that filters options in real-time. Selecting an option closes the dropdown, updates the header label, and fires the callback. Only one value can be selected at a time — see <a href="#multidropdown">MultiDropdown</a> for multi-select.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Get()</td><td>Returns the currently selected string.</td></tr>
+        <tr><td>:Set(string)</td><td>Sets the selection and updates visuals. Does not fire the callback.</td></tr>
+        <tr><td>:Update({string})</td><td>Replaces the options list entirely. Resets selection to the first new option.</td></tr>
+      </table>
+      <p><strong>Options:</strong> <code>{ Flag = "string" }</code> — auto-saves the selected string.</p>
+    </section>
+
+    <section id="multidropdown">
+      <h2>MultiDropdown <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.4</span></h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">MultiDropdown</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">options</span>: <span class="mt">{string}</span>, <span class="mp">defaults</span>: <span class="mt">{string}</span>, <span class="mp">callback</span>: <span class="mt">function</span>, <span class="mp">opts</span>?: <span class="mt">table</span>) &rarr; <span class="mt">MultiDropObj</span></div>
+        <div class="method-desc">Same layout and animation as Dropdown but allows multiple selections simultaneously. Each option row has a checkmark box that toggles independently. The header label summarizes the current selection: shows the single name if one is selected, <code>N selected</code> for a partial set, <code>All</code> when everything is checked, and <code>None</code> when empty. The callback fires on every individual toggle with the full current selection as an ordered array.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Get()</td><td>Returns an ordered <code>{string}</code> array of all currently selected options, in the original options order.</td></tr>
+        <tr><td>:Set({string})</td><td>Replaces the entire selection. Rebuilds visuals and fires the callback.</td></tr>
+        <tr><td>:SetOptions({string})</td><td>Replaces the options list. Clears selection and resets the label to <code>None</code>.</td></tr>
+        <tr><td>:Clear()</td><td>Deselects everything, updates the label, and fires the callback with an empty table.</td></tr>
+      </table>
+      <p><strong>Options:</strong> <code>{ Flag = "string" }</code> — saves and restores the selection as a JSON array of strings.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">layers</span> = <span class="pm">sec</span>:<span class="fn">MultiDropdown</span>(<span class="st">"Visible Layers"</span>, {
+    <span class="st">"Players"</span>, <span class="st">"NPCs"</span>, <span class="st">"Props"</span>, <span class="st">"Effects"</span>
+}, { <span class="st">"Players"</span>, <span class="st">"Props"</span> }, <span class="kw">function</span>(<span class="pm">selected</span>)
+    <span class="kw">for</span> _, <span class="pm">v</span> <span class="kw">in</span> <span class="fn">ipairs</span>(<span class="pm">selected</span>) <span class="kw">do</span> <span class="fn">print</span>(<span class="pm">v</span>) <span class="kw">end</span>
+<span class="kw">end</span>, { Flag = <span class="st">"visibleLayers"</span> })
+
+<span class="fn">print</span>(<span class="pm">layers</span>:<span class="fn">Get</span>())   <span class="cm">-- { "Players", "Props" }</span>
+<span class="pm">layers</span>:<span class="fn">Clear</span>()       <span class="cm">-- deselects all, fires callback with {}</span></code></pre>
+      </div>
+    </section>
+
+    <section id="input">
+      <h2>Input</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Input</span>(<span class="mp">label</span>: <span class="mt">string</span>, <span class="mp">placeholder</span>: <span class="mt">string</span>, <span class="mp">callback</span>: <span class="mt">function</span>) &rarr; <span class="mt">InputObj</span></div>
+        <div class="method-desc">Text input box with a small uppercase label above it. The callback receives <code>(text: string, pressedEnter: boolean)</code> when focus is lost. The box border highlights with the accent color on focus.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Get()</td><td>Returns the current text content.</td></tr>
+        <tr><td>:Set(string)</td><td>Sets the text content directly.</td></tr>
+      </table>
+    </section>
+
+    <section id="keybind">
+      <h2>Keybind</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Keybind</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">default</span>: <span class="mt">Enum.KeyCode | string</span>, <span class="mp">callback</span>: <span class="mt">function</span>) &rarr; <span class="mt">KeybindObj</span></div>
+        <div class="method-desc">Click the pill to enter binding mode, then press any key or mouse button (<code>MB1</code>, <code>MB2</code>, <code>MB3</code>) to assign it. The bound input fires the callback globally anywhere in-game. Pass a <code>KeyCode</code> enum or a string like <code>"F"</code> or <code>"MB2"</code> as the default.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Get()</td><td>Returns the current <code>keyData</code> table: <code>{ mouse, keyCode?, inputType?, name }</code>.</td></tr>
+        <tr><td>:Set(value)</td><td>Sets the bind from a <code>KeyCode</code> or string. Falls back to the default if unresolvable.</td></tr>
+      </table>
+    </section>
+
+    <section id="paragraph">
+      <h2>Paragraph</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Paragraph</span>(<span class="mp">header</span>: <span class="mt">string</span>, <span class="mp">body</span>: <span class="mt">string</span>) &rarr; <span class="mt">ParagraphObj</span></div>
+        <div class="method-desc">Static text block. Pass an empty string for <code>header</code> to omit it. The section card resizes automatically when the body changes. Useful for live status displays.</div>
+      </div>
+      <table class="param-table">
+        <tr><th>Return method</th><th>Description</th></tr>
+        <tr><td>:Update(header, body)</td><td>Replaces both header and body at once. Creates a header label if one didn't exist and a non-empty string is passed.</td></tr>
+        <tr><td>:SetHeader(text)</td><td>Updates only the header. No-op if no header was created at init.</td></tr>
+        <tr><td>:SetBody(text)</td><td>Updates only the body text. The card height adjusts automatically.</td></tr>
+      </table>
+    </section>
+
+    <section id="separator">
+      <h2>Separator</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Separator</span>()</div>
+        <div class="method-desc">Thin horizontal rule inside the section card. Useful for grouping related rows without creating a new section.</div>
+      </div>
+    </section>
+
+    <section id="notify">
+      <h2>Notify</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">Notify</span>(<span class="mp">title</span>: <span class="mt">string</span>, <span class="mp">body</span>: <span class="mt">string</span>, <span class="mp">duration</span>: <span class="mt">number</span>, <span class="mp">side</span>: <span class="mt">string</span>)</div>
+        <div class="method-desc">Delegates to an external notification module (<code>ValenceUI</code>). <code>side</code> is <code>"left"</code> or <code>"right"</code>. Multiple notifications stack vertically and shift when one is dismissed.</div>
+      </div>
+    </section>
+
+    <section id="toggle-key">
+      <h2>SetToggleKey</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">SetToggleKey</span>(<span class="mp">key</span>: <span class="mt">Enum.KeyCode</span>)</div>
+        <div class="method-desc">Assigns a keyboard shortcut to show/hide the window. Full UI state is preserved between toggles. Hides via the same animation path as the close button.</div>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">win</span>:<span class="fn">SetToggleKey</span>(<span class="fn">Enum</span>.KeyCode.RightShift)</code></pre>
+      </div>
+    </section>
+
+    <section id="setaccent">
+      <h2>SetAccent <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.4</span></h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">SetAccent</span>(<span class="mp">color</span>: <span class="mt">Color3 | "rainbow"</span>)</div>
+        <div class="method-desc">Changes the accent color across the entire UI at runtime. Pass a <code>Color3</code> to set a fixed color (also saves it to the config file if <code>ConfigFile</code> is set). Pass the string <code>"rainbow"</code> to start a <code>Heartbeat</code>-driven HSV cycle. Calling <code>SetAccent</code> with a <code>Color3</code> while rainbow is active stops the rainbow loop first.</div>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">win</span>:<span class="fn">SetAccent</span>(<span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">255</span>, <span class="nm">80</span>, <span class="nm">120</span>))
+<span class="pm">win</span>:<span class="fn">SetAccent</span>(<span class="st">"rainbow"</span>)</code></pre>
+      </div>
+    </section>
+
+    <section id="settheme">
+      <h2>SetTheme <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.4</span></h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">SetTheme</span>(<span class="mp">name</span>: <span class="mt">string</span>)</div>
+        <div class="method-desc">Switches the window's background and border color palette to a built-in theme. Updates all background frames, strokes, and scrollbar colors immediately. Also saves the theme name to the config file under the <code>__theme</code> key so it restores on next load.</div>
+      </div>
+      <p>Built-in themes: <code>"Valence"</code>, <code>"Midnight"</code>, <code>"Obsidian"</code>, <code>"Dusk"</code>, <code>"Carbon"</code>, <code>"Ember"</code>.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">win</span>:<span class="fn">SetTheme</span>(<span class="st">"Midnight"</span>)
+<span class="pm">win</span>:<span class="fn">SetTheme</span>(<span class="st">"Ember"</span>)</code></pre>
+      </div>
+    </section>
+
+    <section id="getthemes">
+      <h2>GetThemes <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.4</span></h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">GetThemes</span>() &rarr; <span class="mt">{string}</span></div>
+        <div class="method-desc">Returns a sorted array of all built-in theme names. Useful for populating a Dropdown that lets users switch themes at runtime.</div>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">sec</span>:<span class="fn">Dropdown</span>(<span class="st">"Theme"</span>, <span class="pm">win</span>:<span class="fn">GetThemes</span>(), <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="pm">win</span>:<span class="fn">SetTheme</span>(<span class="pm">v</span>)
+<span class="kw">end</span>)</code></pre>
+      </div>
+    </section>
+
+    <section id="search">
+      <h2>Search</h2>
+      <p>A ⌕ button sits in the topbar to the left of the minimize button. Clicking it opens a fullscreen overlay on top of the content area with an auto-focused search input. Every component registers itself automatically when created. Clicking a result activates it directly — toggles flip, buttons fire their callbacks, dropdowns scroll to the relevant tab and section.</p>
+      <p>Press <code>Escape</code> to close the overlay. The search state does not persist between open/close cycles.</p>
+    </section>
+
+    <section id="save">
+      <h2>Save</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">Save</span>()</div>
+        <div class="method-desc">Manually writes all current flag values to disk as JSON. Called automatically whenever a flagged component changes. Requires <code>ConfigFile</code> to be set and <code>writefile</code> to be available in the executor environment.</div>
+      </div>
+    </section>
+
+    <section id="loadconfig">
+      <h2>LoadConfig</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">LoadConfig</span>(<span class="mp">fileName</span>: <span class="mt">string</span>)</div>
+        <div class="method-desc">Loads a different config file (no extension) into the flags table and pushes all values through their registered <code>flagHandlers</code>, applying them to the live UI. Useful for profile/preset switching.</div>
+      </div>
+    </section>
+
+    <section id="loadedflags">
+      <h2>LoadedFlags</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">LoadedFlags</span>() &rarr; <span class="mt">table</span></div>
+        <div class="method-desc">Returns the internal flags table. You can also reference it directly via <code>win.Flags</code>. The table is shared by reference — changes made to it externally will be reflected in the next <code>:Save()</code> call.</div>
+      </div>
+    </section>
+
+    <section id="destroy">
+      <h2>Destroy</h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">Destroy</span>()</div>
+        <div class="method-desc">Scales the window down and destroys the <code>ScreenGui</code> after the animation completes. Disconnects the rainbow <code>Heartbeat</code> loop if active and stops the topbar pulse animation.</div>
+      </div>
+    </section>
+
+    <section id="icons">
+      <h2>Icons</h2>
+      <p>Artemis uses the full <a href="https://lucide.dev" style="color:var(--accent)">Lucide</a> icon set (48px spritesheet) by default. Prefix any label string with <code>#iconname </code> to show that icon. Use <code>@iconname </code> to load from the <code>AltIconLibrary</code> instead.</p>
+      <p>Icon prefixes work on Tab names, Section names, Button text, Toggle text, Slider text, Dropdown text, MultiDropdown text, ColorPicker text, and Keybind text.</p>
+      <div class="callout">
+        <div class="callout-icon">✦</div>
+        <p><strong>Icons load asynchronously.</strong> The library fetches over HTTP in a separate thread on startup. Icons render within a few frames of the UI appearing — no pop, no layout shift.</p>
+      </div>
+    </section>
+
+    <section id="config">
+      <h2>Config Saving</h2>
+      <p>Set <code>ConfigFile = "myfile"</code> on the window and pass <code>{ Flag = "flagName" }</code> to any Toggle, Slider, Dropdown, MultiDropdown, or ColorPicker. Values auto-save to <code>ArtemisUI/myfile.json</code> on every change and restore on the next load. The theme (<code>__theme</code>) and accent color (<code>__accent</code>) are also stored in the same file.</p>
+      <p>If the file contains malformed JSON it is silently reset to <code>{}</code> so it never blocks startup.</p>
+    </section>
+
+    <section id="fadetoggle">
+      <h2>FadeToggle</h2>
+      <p>When <code>FadeToggle = true</code> in the window config, hiding and showing the window uses a full-tree transparency fade instead of a size animation. Every <code>TextLabel</code>, <code>ImageLabel</code>, <code>UIStroke</code>, and <code>Frame</code> in the window hierarchy is individually tweened. The window position and size are fully preserved between toggles.</p>
+    </section>
+
+    <section id="altlibrary">
+      <h2>Alt Icon Library</h2>
+      <p>Pass <code>AltIconLibrary = "https://your-cdn.com/icons.lua"</code> to the window config. The URL must return a Lua table in the same spritesheet format as the default Lucide set (<code>{ ["48px"] = { iconname = { id, {w,h}, {ox,oy} } } }</code>). Use the <code>@iconname </code> prefix anywhere to pull from this library.</p>
+    </section>
+
+    <section id="mobile">
+      <h2>Mobile FAB <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.4</span></h2>
+      <p>On touch-enabled devices, closing the window reveals a draggable Floating Action Button (FAB) in the left-center of the screen. Tapping it reopens the window. The FAB remembers its last dragged position between open/close cycles within the same session.</p>
+      <p>A separate <code>MobileBtn</code> is also available at the left edge as an alternate re-open target. Both buttons support drag-to-reposition — a tap that doesn't move more than 5–6px is treated as a tap, not a drag.</p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">&#9888;</div>
+        <p>The FAB only appears when <code>UserInputService.TouchEnabled</code> is true. On desktop it stays hidden regardless of how the window is closed.</p>
+      </div>
+    </section>
+
+    <section id="example">
+      <h2>Full Example Script</h2>
+      <p>Every component, theme switching, accent control, MultiDropdown, search, paragraph updates, KeySystem, and config saving in one script.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="ty">ArtemisUI</span> = <span class="fn">loadstring</span>(<span class="fn">game:HttpGet</span>(<span class="st">"https://valencea.xyz/Artemis/loader.lua"</span>))()
+
+<span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({
+    Title            = <span class="st">"ArtemisUI"</span>,
+    Subtitle         = <span class="st">"v1.4"</span>,
+    Accent           = <span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">108</span>, <span class="nm">99</span>, <span class="nm">255</span>),
+    Icon             = <span class="st">"sword"</span>,
+    ConfigFile       = <span class="st">"artemis_demo"</span>,
+    LoadingAnimation = <span class="nm">2</span>,
+    FadeToggle       = <span class="kw">true</span>,
+    KeySystem        = {
+        Title      = <span class="st">"Access Required"</span>,
+        Subtitle   = <span class="st">"Enter the key from our Discord"</span>,
+        GetKeyUrl  = <span class="st">"https://discord.gg/example"</span>,
+        OnValidate = <span class="kw">function</span>(<span class="pm">input</span>) <span class="kw">return</span> <span class="pm">input</span>:<span class="fn">Get</span>() == <span class="st">"demo123"</span> <span class="kw">end</span>
+    }
+})
+
+<span class="pm">win</span>:<span class="fn">SetToggleKey</span>(<span class="fn">Enum</span>.KeyCode.RightShift)
+<span class="pm">win</span>:<span class="fn">Notify</span>(<span class="st">"ArtemisUI"</span>, <span class="st">"Loaded. Press ⌕ to search."</span>, <span class="nm">4</span>, <span class="st">"right"</span>)
+
+<span class="cm">-- Main tab</span>
+<span class="kw">local</span> <span class="pm">main</span> = <span class="pm">win</span>:<span class="fn">Tab</span>(<span class="st">"#home Main"</span>)
+<span class="kw">local</span> <span class="pm">combat</span> = <span class="pm">main</span>:<span class="fn">Section</span>(<span class="st">"#sword Combat"</span>)
+
+<span class="kw">local</span> <span class="pm">aura</span> = <span class="pm">combat</span>:<span class="fn">Toggle</span>(<span class="st">"Aura Active"</span>, <span class="kw">false</span>, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="fn">print</span>(<span class="st">"Aura:"</span>, <span class="pm">v</span>)
+<span class="kw">end</span>, { Flag = <span class="st">"auraActive"</span> })
+
+<span class="pm">combat</span>:<span class="fn">Keybind</span>(<span class="st">"Toggle Aura"</span>, <span class="fn">Enum</span>.KeyCode.F, <span class="kw">function</span>()
+    <span class="pm">aura</span>:<span class="fn">Toggle</span>()
+    <span class="pm">win</span>:<span class="fn">Notify</span>(<span class="st">"Aura"</span>, <span class="pm">aura</span>:<span class="fn">Get</span>() <span class="kw">and</span> <span class="st">"Enabled"</span> <span class="kw">or</span> <span class="st">"Disabled"</span>, <span class="nm">2</span>, <span class="st">"right"</span>)
+<span class="kw">end</span>)
+
+<span class="cm">-- Multi-select gear selection</span>
+<span class="kw">local</span> <span class="pm">selectedGears</span> = {}
+<span class="pm">combat</span>:<span class="fn">MultiDropdown</span>(<span class="st">"Active Gears"</span>, {
+    <span class="st">"Landmine"</span>, <span class="st">"AutoTurret"</span>, <span class="st">"Cloak"</span>, <span class="st">"Shuriken"</span>
+}, {}, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="pm">selectedGears</span> = <span class="pm">v</span>
+<span class="kw">end</span>, { Flag = <span class="st">"activeGears"</span> })
+
+<span class="kw">local</span> <span class="pm">movement</span> = <span class="pm">main</span>:<span class="fn">Section</span>(<span class="st">"#zap Movement"</span>)
+<span class="kw">local</span> <span class="pm">speed</span> = <span class="pm">movement</span>:<span class="fn">Slider</span>(<span class="st">"Walk Speed"</span>, <span class="nm">16</span>, <span class="nm">300</span>, <span class="nm">16</span>, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="kw">local</span> <span class="pm">c</span> = <span class="fn">game</span>.Players.LocalPlayer.Character
+    <span class="kw">if</span> <span class="pm">c</span> <span class="kw">and</span> <span class="pm">c</span>:<span class="fn">FindFirstChild</span>(<span class="st">"Humanoid"</span>) <span class="kw">then</span> <span class="pm">c</span>.Humanoid.WalkSpeed = <span class="pm">v</span> <span class="kw">end</span>
+<span class="kw">end</span>, { Flag = <span class="st">"walkSpeed"</span>, Increment = <span class="nm">5</span> })
+
+<span class="cm">-- Status paragraph with live updates</span>
+<span class="kw">local</span> <span class="pm">statusSec</span> = <span class="pm">main</span>:<span class="fn">Section</span>(<span class="st">"#info Status"</span>)
+<span class="kw">local</span> <span class="pm">infoP</span> = <span class="pm">statusSec</span>:<span class="fn">Paragraph</span>(<span class="st">"Session"</span>, <span class="st">"Idle"</span>)
+<span class="kw">local</span> <span class="pm">kills</span> = <span class="nm">0</span>
+<span class="pm">statusSec</span>:<span class="fn">Button</span>(<span class="st">"Simulate Kill"</span>, <span class="kw">function</span>()
+    <span class="pm">kills</span> += <span class="nm">1</span>
+    <span class="pm">infoP</span>:<span class="fn">SetBody</span>(<span class="st">"Running — "</span> .. <span class="pm">kills</span> .. <span class="st">" kills"</span>)
+<span class="kw">end</span>)
+
+<span class="cm">-- Settings tab</span>
+<span class="kw">local</span> <span class="pm">settings</span> = <span class="pm">win</span>:<span class="fn">Tab</span>(<span class="st">"#settings Settings"</span>)
+
+<span class="kw">local</span> <span class="pm">appearance</span> = <span class="pm">settings</span>:<span class="fn">Section</span>(<span class="st">"#palette Appearance"</span>)
+<span class="pm">appearance</span>:<span class="fn">Dropdown</span>(<span class="st">"Theme"</span>, <span class="pm">win</span>:<span class="fn">GetThemes</span>(), <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="pm">win</span>:<span class="fn">SetTheme</span>(<span class="pm">v</span>)
+<span class="kw">end</span>)
+<span class="pm">appearance</span>:<span class="fn">ColorPicker</span>(<span class="st">"Accent"</span>, <span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">108</span>,<span class="nm">99</span>,<span class="nm">255</span>), <span class="kw">function</span>(<span class="pm">c</span>)
+    <span class="pm">win</span>:<span class="fn">SetAccent</span>(<span class="pm">c</span>)
+<span class="kw">end</span>, { Flag = <span class="st">"customAccent"</span> })
+<span class="pm">appearance</span>:<span class="fn">Toggle</span>(<span class="st">"Rainbow Mode"</span>, <span class="kw">false</span>, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="pm">win</span>:<span class="fn">SetAccent</span>(<span class="pm">v</span> <span class="kw">and</span> <span class="st">"rainbow"</span> <span class="kw">or</span> <span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">108</span>,<span class="nm">99</span>,<span class="nm">255</span>))
+<span class="kw">end</span>)
+
+<span class="kw">local</span> <span class="pm">perf</span> = <span class="pm">settings</span>:<span class="fn">Section</span>(<span class="st">"#gauge Performance"</span>)
+<span class="kw">local</span> <span class="pm">fps</span> = <span class="pm">perf</span>:<span class="fn">Slider</span>(<span class="st">"FPS Cap"</span>, <span class="nm">30</span>, <span class="nm">240</span>, <span class="nm">60</span>, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="fn">setfpscap</span>(<span class="pm">v</span>)
+<span class="kw">end</span>, { Flag = <span class="st">"fpsCap"</span>, Increment = <span class="nm">10</span> })
+
+<span class="pm">perf</span>:<span class="fn">Button</span>(<span class="st">"Reset All"</span>, <span class="kw">function</span>()
+    <span class="pm">speed</span>:<span class="fn">Set</span>(<span class="nm">16</span>); <span class="pm">fps</span>:<span class="fn">Set</span>(<span class="nm">60</span>); <span class="pm">aura</span>:<span class="fn">Set</span>(<span class="kw">false</span>)
+    <span class="pm">win</span>:<span class="fn">Save</span>()
+    <span class="pm">win</span>:<span class="fn">Notify</span>(<span class="st">"Reset"</span>, <span class="st">"All settings restored."</span>, <span class="nm">3</span>, <span class="st">"right"</span>)
+<span class="kw">end</span>)</code></pre>
+      </div>
+    </section>
+
+  </main>
+</div>
+<script>
+const sections = document.querySelectorAll('section[id]')
+const links = document.querySelectorAll('.sb-link')
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'))
+      const a = document.querySelector('.sb-link[href="#' + e.target.id + '"]')
+      if (a) a.classList.add('active')
+    }
+  })
+}, { rootMargin: '-40% 0px -55% 0px' })
+sections.forEach(s => obs.observe(s))
+
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const pre = btn.nextElementSibling
+    const text = pre.innerText
+    try { await navigator.clipboard.writeText(text) } catch {
+      const ta = document.createElement('textarea')
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta)
+    }
+    btn.classList.add('copied')
+    btn.querySelector('svg').innerHTML = '<polyline points="20 6 9 17 4 12"/>'
+    setTimeout(() => {
+      btn.classList.remove('copied')
+      btn.querySelector('svg').innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'
+    }, 1800)
+  })
+})
+</script>
+</body>
+</html>
