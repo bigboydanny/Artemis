@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Artemis — Redefining UI on Roblox.</title>
+<title>Artemis · Redefining UI on Roblox.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="icon" href="https://artemis.valencea.xyz/icon.png">
@@ -222,7 +222,8 @@ nav {
 .feat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(107,99,255,0.35), transparent); opacity: 0; transition: opacity 0.3s; }
 .feat-card:hover { background: rgba(17,17,26,0.95); }
 .feat-card:hover::after { opacity: 1; }
-.feat-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--accent-dim); border: 1px solid rgba(107,99,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.feat-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--accent-dim); border: 1px solid rgba(107,99,255,0.2); display: flex; align-items: center; justify-content: center; color: var(--accent-hi); }
+.feat-icon svg { width: 19px; height: 19px; }
 .feat-title { font-size: 15px; font-weight: 700; }
 .feat-desc { font-size: 13px; color: var(--text-mid); line-height: 1.65; }
 
@@ -442,7 +443,7 @@ footer span { font-size: 13px; color: var(--text-lo); }
     Build<br><span class="gradient">beautiful</span><br>Roblox UIs.
   </h1>
   <p class="hero-sub">
-    Artemis is a sleek frosted-glass UI library for Roblox. Tabs, toggles, sliders, dropdowns, notifications — all in one ModuleScript.
+    Artemis is a sleek frosted-glass UI library for Roblox. Tabs, toggles, sliders, dropdowns, and notifications, all packed into one Module.
   </p>
   <div class="hero-btns">
     <a href="/Artemis/docs" class="btn-main">
@@ -456,7 +457,7 @@ footer span { font-size: 13px; color: var(--text-lo); }
 <!-- Stats -->
 <div class="stats-bar">
   <div class="stat reveal"><div class="stat-n">8+</div><div class="stat-l">Components</div></div>
-  <div class="stat reveal d1"><div class="stat-n">1</div><div class="stat-l">ModuleScript</div></div>
+  <div class="stat reveal d1"><div class="stat-n">1</div><div class="stat-l">Module</div></div>
   <div class="stat reveal d2"><div class="stat-n">∞</div><div class="stat-l">Accent Colors</div></div>
   <div class="stat reveal d3"><div class="stat-n">0</div><div class="stat-l">Dependencies</div></div>
 </div>
@@ -470,32 +471,32 @@ footer span { font-size: 13px; color: var(--text-lo); }
   </div>
   <div class="feat-grid">
     <div class="feat-card reveal">
-      <div class="feat-icon">✦</div>
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 1.5l1.8 5.4 5.4 1.8-5.4 1.8-1.8 5.4-1.8-5.4-5.4-1.8 5.4-1.8z" stroke-linejoin="round"/></svg></div>
       <div class="feat-title">Frosted Glass Design</div>
       <div class="feat-desc">Deep dark palette with translucent surfaces, soft accent glows and layered shadows that look premium in any game.</div>
     </div>
     <div class="feat-card reveal d1">
-      <div class="feat-icon">⚡</div>
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 1.5L4 11.5h5l-1 7 7-10h-5l1-7z" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
       <div class="feat-title">Smooth Animations</div>
       <div class="feat-desc">Every interaction uses Quint and Back easing curves. Toggles, sliders, dropdowns and tab switches all feel alive.</div>
     </div>
     <div class="feat-card reveal d2">
-      <div class="feat-icon">🎨</div>
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7.5"/><path d="M10 2.5a7.5 7.5 0 000 15" fill="currentColor" stroke="none" opacity="0.35"/></svg></div>
       <div class="feat-title">Fully Themeable</div>
       <div class="feat-desc">Pass any <code style="font-size:12px;color:var(--accent)">Accent</code> color to <code style="font-size:12px;color:var(--accent)">Window()</code> and every glow, border and pill updates automatically.</div>
     </div>
     <div class="feat-card reveal">
-      <div class="feat-icon">📦</div>
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M10 2l7 3.5v9L10 18l-7-3.5v-9z"/><path d="M3 5.5L10 9l7-3.5M10 9v9"/></svg></div>
       <div class="feat-title">Zero Dependencies</div>
-      <div class="feat-desc">One ModuleScript, no external packages. Drop it in ReplicatedStorage and require from any LocalScript.</div>
+      <div class="feat-desc">One Module, no external packages. Drop it in ReplicatedStorage and require it from any client script.</div>
     </div>
     <div class="feat-card reveal d1">
-      <div class="feat-icon">🔔</div>
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 14.5V9a5.5 5.5 0 0111 0v5.5"/><path d="M3 14.5h14M8.5 17h3"/></svg></div>
       <div class="feat-title">Notifications</div>
       <div class="feat-desc">Slide-in toast notifications with a countdown progress bar, configurable duration and left/right side positioning.</div>
     </div>
     <div class="feat-card reveal d2">
-      <div class="feat-icon">⌨</div>
+      <div class="feat-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="5" width="16" height="10" rx="1.5"/><path d="M5 8.5h.01M8 8.5h.01M11 8.5h.01M14 8.5h.01M5.5 11.5h9" stroke-linecap="round"/></svg></div>
       <div class="feat-title">Toggle Keybind</div>
       <div class="feat-desc">Assign any key to show and hide the window. Uses a clean <code style="font-size:12px;color:var(--accent)">Visible</code> toggle so all state is preserved.</div>
     </div>
@@ -642,7 +643,7 @@ footer span { font-size: 13px; color: var(--text-lo); }
     <span class="kw">function</span>(<span class="ty">v</span>) <span class="fn">print</span>(<span class="ty">v</span>) <span class="kw">end</span>
 )
 
-<span class="cm">-- Reset everything programmatically</span>
+<span class="cm">-- reset everything programmatically</span>
 <span class="kw">local</span> <span class="ty">reset</span> = <span class="ty">tab</span>:<span class="fn">Section</span>(<span class="st">"Actions"</span>)
 <span class="ty">reset</span>:<span class="fn">Button</span>(<span class="st">"Reset All"</span>, <span class="kw">function</span>()
     <span class="ty">toggle</span>:<span class="fn">Set</span>(<span class="kw">false</span>)
