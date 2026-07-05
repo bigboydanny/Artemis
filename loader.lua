@@ -54,12 +54,12 @@ local function parseLabel(str)
 		local src, t = str:match("^@image%-(%S+)%s+(.+)$")
 		if not src then src = str:match("^@image%-(%S+)$"); t = "" end
 		if src then return src, (t or ""), 3 end
-		local n, t2 = str:match("^@([%a%-_]+)%s+(.+)$")
-		if not n then n = str:match("^@([%a%-_]+)$"); t2 = "" end
+		local n, t2 = str:match("^@([%w%-_]+)%s+(.+)$")
+		if not n then n = str:match("^@([%w%-_]+)$"); t2 = "" end
 		if n then return n:lower(), (t2 or ""), 2 end; return nil, str:sub(2), 1
 	elseif c=="#" then
-		local n, t = str:match("^#([%a%-_]+)%s+(.+)$")
-		if not n then n = str:match("^#([%a%-_]+)$"); t = "" end
+		local n, t = str:match("^#([%w%-_]+)%s+(.+)$")
+		if not n then n = str:match("^#([%w%-_]+)$"); t = "" end
 		if n then return n:lower(), (t or ""), 1 end; return nil, str:sub(2), 1
 	end
 	return nil, str, 1
@@ -801,8 +801,8 @@ function ArtemisUI:Window(cfg)
 		regTh(profName,"TextColor3","textHi")
 		local profSub=nil
 		if PROFILE_SUB~="" then
-			profSub=new("TextLabel",{Name="Sub",Size=UDim2.new(1,-8,0,10),Position=UDim2.new(0,4,0,48),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_SUB,TextColor3=C.textLo,Font=Enum.Font.Gotham,TextSize=8,TextXAlignment=Enum.TextXAlignment.Center,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=7},sideProfile)
-			regTh(profSub,"TextColor3","textLo")
+			profSub=new("TextLabel",{Name="Sub",Size=UDim2.new(1,-8,0,10),Position=UDim2.new(0,4,0,48),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_SUB,TextColor3=C.textMid,Font=Enum.Font.Gotham,TextSize=8,TextXAlignment=Enum.TextXAlignment.Center,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=7},sideProfile)
+			regTh(profSub,"TextColor3","textMid")
 		end
 		applyProfileLayout=function(open)
 			if open then
@@ -826,8 +826,8 @@ function ArtemisUI:Window(cfg)
 		regTh(topName,"TextColor3","textHi")
 		local topSub=nil
 		if PROFILE_SUB~="" then
-			topSub=new("TextLabel",{Size=UDim2.new(1,-34,0,11),Position=UDim2.new(0,34,0.5,2),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_SUB,TextColor3=C.textLo,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=8},topProfile)
-			regTh(topSub,"TextColor3","textLo")
+			topSub=new("TextLabel",{Size=UDim2.new(1,-34,0,11),Position=UDim2.new(0,34,0.5,2),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_SUB,TextColor3=C.textMid,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=8},topProfile)
+			regTh(topSub,"TextColor3","textMid")
 		end
 		topProfile.MouseEnter:Connect(function()
 			twHover(topName,0.16,{TextTransparency=0})
@@ -1327,14 +1327,23 @@ function ArtemisUI:Window(cfg)
 			if splitActive then return end
 			splitActive=true; colL.Size=UDim2.new(0.5,-8,0,0); colR.Size=UDim2.new(0.5,-8,0,0); colR.Visible=true
 		end
+		local autoRight=false
 		tabs[name]=pane
 		if activeTab==nil then activateTab(name) end
 
 		local TabObj={}
 
 		function TabObj:Section(secName, column)
-			local target=colL
-			if type(column)=="string" and column:lower()=="right" then ensureSplit(); target=colR end
+			local side=type(column)=="string" and column:lower() or nil
+			local target
+			if side=="right" then
+				ensureSplit(); target=colR
+			elseif side=="left" then
+				target=colL
+			else
+				if autoRight then ensureSplit(); target=colR else target=colL end
+				autoRight=not autoRight
+			end
 			local wrap=new("Frame",{Name=secName.."_Wrap",Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,BorderSizePixel=0},target)
 			vstack(0,wrap)
 			local secIcon,secLabel,secLib=parseLabel(secName)
