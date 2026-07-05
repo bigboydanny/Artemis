@@ -116,6 +116,7 @@ section[id]{scroll-margin-top:80px}
     <div class="sb-group">
       <span class="sb-label">Getting Started</span>
       <a href="#introduction" class="sb-link active">Introduction</a>
+      <a href="#changelog" class="sb-link">Changelog</a>
       <a href="#installation" class="sb-link">Installation</a>
       <a href="#quick-start" class="sb-link">Quick Start</a>
     </div>
@@ -144,9 +145,11 @@ section[id]{scroll-margin-top:80px}
       <span class="sb-label">Window Methods</span>
       <a href="#notify" class="sb-link">Notify</a>
       <a href="#toggle-key" class="sb-link">SetToggleKey</a>
-      <a href="#setaccent" class="sb-link">SetAccent ✦</a>
-      <a href="#settheme" class="sb-link">SetTheme ✦</a>
-      <a href="#getthemes" class="sb-link">GetThemes ✦</a>
+      <a href="#setaccent" class="sb-link">SetAccent</a>
+      <a href="#settheme" class="sb-link">SetTheme</a>
+      <a href="#getthemes" class="sb-link">GetThemes</a>
+      <a href="#setshadow" class="sb-link">SetShadow ✦</a>
+      <a href="#topbarbutton" class="sb-link">TopbarButton ✦</a>
       <a href="#search" class="sb-link">Search</a>
       <a href="#save" class="sb-link">Save</a>
       <a href="#loadconfig" class="sb-link">LoadConfig</a>
@@ -159,7 +162,12 @@ section[id]{scroll-margin-top:80px}
       <a href="#config" class="sb-link">Config Saving</a>
       <a href="#fadetoggle" class="sb-link">FadeToggle</a>
       <a href="#altlibrary" class="sb-link">Alt Icon Library</a>
-      <a href="#mobile" class="sb-link">Mobile FAB ✦</a>
+      <a href="#mobile" class="sb-link">Mobile FAB</a>
+      <a href="#sidebar-tabs" class="sb-link">Sidebar Tabs ✦</a>
+      <a href="#profile" class="sb-link">Profile Block ✦</a>
+      <a href="#split-sections" class="sb-link">Split Sections ✦</a>
+      <a href="#inline-keybinds" class="sb-link">Inline Keybinds ✦</a>
+      <a href="#settingspanel" class="sb-link">Settings Panel ✦</a>
     </div>
     <div class="sb-group">
       <span class="sb-label">More</span>
@@ -170,9 +178,9 @@ section[id]{scroll-margin-top:80px}
 
     <section id="introduction">
       <div class="badge-row">
-        <span class="badge badge-accent">v1.4</span>
+        <span class="badge badge-accent">v1.5</span>
         <span class="badge badge-green">&#9679; Stable</span>
-        <span class="badge badge-new">✦ New in v1.4</span>
+        <span class="badge badge-new">✦ New in v1.5</span>
       </div>
       <h1>Documentation</h1>
       <p class="lead">Artemis is a frosted-glass Roblox UI library. One ModuleScript, zero dependencies, fully themeable with any accent color.</p>
@@ -182,8 +190,77 @@ section[id]{scroll-margin-top:80px}
       </div>
       <div class="callout">
         <div class="callout-icon">&#x1F195;</div>
-        <p><strong>v1.4 adds:</strong> <strong>MultiDropdown</strong> component, <strong>SetAccent</strong> (with rainbow mode), <strong>SetTheme</strong> / <strong>GetThemes</strong>, and <strong>mobile FAB</strong> for touch devices. v1.3 added built-in <strong>search overlay</strong>, <strong>ColorPicker</strong>, <strong>KeySystem</strong>, <strong>FadeToggle</strong>, and <strong>AltIconLibrary</strong>.</p>
+        <p><strong>v1.5 adds:</strong> a collapsible <strong>sidebar tab rail</strong> (with a top-bar mode still available), a <strong>profile block</strong> showing the player's avatar, a built-in <strong>Settings panel</strong> for theme/keybind/config switching, <strong>split two-column sections</strong>, <strong>inline keybinds</strong> on Buttons and Toggles, real drop shadows via <strong>SetShadow</strong>, custom <strong>TopbarButton</strong> slots, and raw asset icons via the <code>@image-</code> prefix. See the <a href="#changelog">Changelog</a> for the full breakdown.</p>
       </div>
+    </section>
+
+    <section id="changelog">
+      <h2>Changelog</h2>
+      <div class="badge-row">
+        <span class="badge badge-accent">v1.5</span>
+      </div>
+      <p>Everything new since v1.4, with a snippet for each addition.</p>
+
+      <h3>Sidebar tab rail</h3>
+      <p>Tabs can now live in a collapsible left-hand rail instead of the top tab strip. Hovering the rail expands it from <code>SidebarWidth</code> to <code>SidebarExpandedWidth</code> and reveals the tab labels; moving off collapses it back down. <code>TabPosition</code> defaults to <code>"left"</code> — pass <code>"top"</code> to keep the old horizontal tabbar.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({
+    Title               = <span class="st">"ArtemisUI"</span>,
+    TabPosition         = <span class="st">"left"</span>,
+    SidebarWidth        = <span class="nm">54</span>,
+    SidebarExpandedWidth = <span class="nm">176</span>,
+})</code></pre>
+      </div>
+
+      <h3>Profile block</h3>
+      <p>The sidebar (and the topbar, in <code>"top"</code> mode) now shows the local player's avatar head-shot next to a name and optional subtext. Set <code>ProfileName</code>/<code>ProfileSubtext</code> to override the defaults, which fall back to <code>DisplayName</code>.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({
+    ProfileName    = <span class="pm">game</span>.Players.LocalPlayer.DisplayName,
+    ProfileSubtext = <span class="st">"Premium"</span>,
+})</code></pre>
+      </div>
+
+      <h3>Built-in Settings panel</h3>
+      <p>A gear icon now sits in the topbar next to search. It opens a small popover with theme cycling, toggle-key rebinding, a sidebar/topbar position switch, and a config file picker — all wired to the same <code>ConfigFile</code> flags used everywhere else. See <a href="#settingspanel">Settings Panel</a> for details. Nothing to call — it's created automatically whenever a window exists.</p>
+
+      <h3>Split two-column sections</h3>
+      <p><code>Tab:Section</code> takes an optional second argument. Pass <code>"right"</code> to place that section in a second column that appears the first time it's used.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">left</span>  = <span class="pm">tab</span>:<span class="fn">Section</span>(<span class="st">"#sword Combat"</span>)
+<span class="kw">local</span> <span class="pm">right</span> = <span class="pm">tab</span>:<span class="fn">Section</span>(<span class="st">"#shield Defense"</span>, <span class="st">"right"</span>)</code></pre>
+      </div>
+
+      <h3>Inline keybinds on Button / Toggle</h3>
+      <p>Buttons and Toggles can now carry their own bind pill so you don't need a separate <code>Keybind</code> row. Pass <code>Keybindable = true</code> and an optional default <code>Bind</code> in <code>opts</code>; the bind fires the same callback as the click.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">sec</span>:<span class="fn">Button</span>(<span class="st">"Fire"</span>, <span class="kw">function</span>() <span class="fn">print</span>(<span class="st">"fired"</span>) <span class="kw">end</span>, {
+    Keybindable = <span class="kw">true</span>, Bind = <span class="st">"F"</span>, Flag = <span class="st">"fireBtn"</span>
+})</code></pre>
+      </div>
+
+      <h3>SetShadow &amp; real drop shadows</h3>
+      <p>Window shadows were disabled internally in the previous build. They're back, off by default — pass <code>Shadow = true</code> in the window config or flip it live with <code>win:SetShadow(bool)</code>. See <a href="#setshadow">SetShadow</a>.</p>
+
+      <h3>TopbarButton</h3>
+      <p>Add up to five custom icon buttons to the topbar, to the left of search. See <a href="#topbarbutton">TopbarButton</a>.</p>
+
+      <h3><code>@image-</code> icon prefix</h3>
+      <p>Labels can now point straight at an asset id or full <code>rbxassetid://</code> / <code>rbxthumb://</code> / <code>https://</code> string instead of a Lucide/AltIconLibrary name, using <code>@image-&lt;src&gt; </code>.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">win</span>:<span class="fn">Tab</span>(<span class="st">"@image-14038776235 Custom"</span>)</code></pre>
+      </div>
+
+      <h3>Smarter theme switching</h3>
+      <p><code>SetTheme</code> now matches names case-insensitively and, unless a custom accent was already set via <code>SetAccent</code>, applies that theme's matching accent color automatically. Internally, theme colors now propagate to every themed frame/stroke/label instead of a fixed handful, so custom UI you register with <code>win.RegisterTheme</code>-style refs stays in sync too.</p>
+
+      <h3>Reworked search popup</h3>
+      <p>Search is now a compact popup anchored under the topbar instead of a fullscreen overlay. Typing filters rows in place and jumps to the first matching tab, rather than listing results to click through. See the updated <a href="#search">Search</a> section.</p>
     </section>
 
     <section id="installation">
@@ -233,6 +310,12 @@ section[id]{scroll-margin-top:80px}
         <tr><td>FadeToggle</td><td>boolean</td><td>false</td><td>When true, the window hides/shows with a fade overlay instead of shrinking to zero size.</td></tr>
         <tr><td>AltIconLibrary</td><td>string</td><td>nil</td><td>URL to a custom icon library. Use the <code>@</code> prefix on labels to pull icons from this library.</td></tr>
         <tr><td>KeySystem</td><td>table</td><td>nil</td><td>Enables a key validation modal before the window appears. See <a href="#keysystem">KeySystem</a>.</td></tr>
+        <tr><td>Shadow</td><td>boolean</td><td>false</td><td>Draws a soft drop shadow behind the window. Can be flipped later with <a href="#setshadow"><code>SetShadow</code></a>.</td></tr>
+        <tr><td>TabPosition</td><td>string</td><td>"left"</td><td><code>"left"</code> puts tabs in a collapsible sidebar rail. <code>"top"</code> uses the classic horizontal tabbar.</td></tr>
+        <tr><td>SidebarWidth</td><td>number</td><td>54</td><td>Collapsed width of the sidebar rail, in pixels. Only applies when <code>TabPosition</code> is <code>"left"</code>.</td></tr>
+        <tr><td>SidebarExpandedWidth</td><td>number</td><td>176</td><td>Width the rail expands to on hover, revealing tab labels.</td></tr>
+        <tr><td>ProfileName</td><td>string</td><td>DisplayName</td><td>Name shown next to the avatar in the profile block.</td></tr>
+        <tr><td>ProfileSubtext</td><td>string</td><td>""</td><td>Optional line shown under the profile name.</td></tr>
       </table>
       <div class="callout">
         <div class="callout-icon">&#9432;</div>
@@ -289,16 +372,23 @@ section[id]{scroll-margin-top:80px}
     <section id="section">
       <h2>Section</h2>
       <div class="method">
-        <div class="method-sig"><span class="mn">tab</span>:<span class="fn">Section</span>(<span class="mp">name</span>: <span class="mt">string</span>) &rarr; <span class="mt">SecObj</span></div>
-        <div class="method-desc">Groups components inside a labeled card with an accent top-line and automatic dividers between rows. Supports the same <code>#</code> and <code>@</code> icon prefixes as tabs. The card border brightens on hover.</div>
+        <div class="method-sig"><span class="mn">tab</span>:<span class="fn">Section</span>(<span class="mp">name</span>: <span class="mt">string</span>, <span class="mp">column</span>?: <span class="mt">"right"</span>) &rarr; <span class="mt">SecObj</span></div>
+        <div class="method-desc">Groups components inside a labeled card with an accent top-line and automatic dividers between rows. Supports the same <code>#</code> and <code>@</code> icon prefixes as tabs. The card border brightens on hover. Pass <code>"right"</code> as <code>column</code> to place the section in a second column — see <a href="#split-sections">Split Sections</a>.</div>
       </div>
     </section>
 
     <section id="button">
       <h2>Button</h2>
       <div class="method">
-        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Button</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">callback</span>: <span class="mt">function</span>)</div>
-        <div class="method-desc">Clickable row with a chevron pill on the right. Plays a ripple on press. If the callback throws, the row briefly flashes red and shows "Error" before restoring. Auto-registered in the search overlay — clicking the result fires the callback directly.</div>
+        <div class="method-sig"><span class="mn">sec</span>:<span class="fn">Button</span>(<span class="mp">text</span>: <span class="mt">string</span>, <span class="mp">callback</span>: <span class="mt">function</span>, <span class="mp">opts</span>?: <span class="mt">table</span>)</div>
+        <div class="method-desc">Clickable row with a chevron pill on the right. Plays a ripple on press. If the callback throws, the row briefly flashes red and shows "Error" before restoring. Auto-registered in search — jumping to the result fires the callback directly.</div>
+      </div>
+      <p><strong>Options:</strong> <code>{ Keybindable = boolean, Bind = Enum.KeyCode | string, Flag = "string" }</code> — <code>Keybindable</code> adds a bind pill next to the button that fires the same callback; the bind is saved under <code>Flag.."_kb"</code> when <code>Flag</code> is set.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">sec</span>:<span class="fn">Button</span>(<span class="st">"#zap Overload"</span>, <span class="kw">function</span>()
+    <span class="fn">print</span>(<span class="st">"overloaded"</span>)
+<span class="kw">end</span>, { Keybindable = <span class="kw">true</span>, Bind = <span class="st">"G"</span>, Flag = <span class="st">"overloadBtn"</span> })</code></pre>
       </div>
     </section>
 
@@ -314,7 +404,13 @@ section[id]{scroll-margin-top:80px}
         <tr><td>:Get()</td><td>Returns current boolean state.</td></tr>
         <tr><td>:Toggle()</td><td>Flips the current state.</td></tr>
       </table>
-      <p><strong>Options:</strong> <code>{ Flag = "string" }</code> — auto-saves and restores the boolean when <code>ConfigFile</code> is set.</p>
+      <p><strong>Options:</strong> <code>{ Flag = "string", Keybindable = boolean, Bind = Enum.KeyCode | string }</code> — <code>Flag</code> auto-saves and restores the boolean when <code>ConfigFile</code> is set. <code>Keybindable</code> adds a bind pill that flips the toggle directly, saved under <code>Flag.."_kb"</code>.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">sec</span>:<span class="fn">Toggle</span>(<span class="st">"Aimbot"</span>, <span class="kw">false</span>, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="fn">print</span>(<span class="st">"aimbot:"</span>, <span class="pm">v</span>)
+<span class="kw">end</span>, { Flag = <span class="st">"aimbot"</span>, Keybindable = <span class="kw">true</span>, Bind = <span class="st">"MB2"</span> })</code></pre>
+      </div>
     </section>
 
     <section id="slider">
@@ -478,9 +574,9 @@ section[id]{scroll-margin-top:80px}
       <h2>SetTheme <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.4</span></h2>
       <div class="method">
         <div class="method-sig"><span class="mn">win</span>:<span class="fn">SetTheme</span>(<span class="mp">name</span>: <span class="mt">string</span>)</div>
-        <div class="method-desc">Switches the window's background and border color palette to a built-in theme. Updates all background frames, strokes, and scrollbar colors immediately. Also saves the theme name to the config file under the <code>__theme</code> key so it restores on next load.</div>
+        <div class="method-desc">Switches the window's background and border color palette to a built-in theme. Matches theme names case-insensitively and updates every registered themed frame, stroke, and label immediately — not just a fixed set of backgrounds. Unless a custom accent has already been set via <code>SetAccent</code>, also applies that theme's default accent color. Saves the theme name to the config file under the <code>__theme</code> key so it restores on next load.</div>
       </div>
-      <p>Built-in themes: <code>"Valence"</code>, <code>"Midnight"</code>, <code>"Obsidian"</code>, <code>"Dusk"</code>, <code>"Carbon"</code>, <code>"Ember"</code>.</p>
+      <p>Built-in themes: <code>"Valence"</code>, <code>"Midnight"</code>, <code>"Obsidian"</code>, <code>"Dusk"</code>, <code>"Carbon"</code>, <code>"Ember"</code>. Each ships a matching default accent color.</p>
       <div class="code-wrap">
         <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         <pre data-lang="lua"><code><span class="pm">win</span>:<span class="fn">SetTheme</span>(<span class="st">"Midnight"</span>)
@@ -502,10 +598,38 @@ section[id]{scroll-margin-top:80px}
       </div>
     </section>
 
+    <section id="setshadow">
+      <h2>SetShadow <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.5</span></h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">SetShadow</span>(<span class="mp">on</span>: <span class="mt">boolean</span>)</div>
+        <div class="method-desc">Fades a soft drop shadow behind the window in or out. Mirrors the window's <code>Shadow</code> config field, so you can leave shadows off by default and let the user enable them from a Toggle.</div>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">sec</span>:<span class="fn">Toggle</span>(<span class="st">"Window Shadow"</span>, <span class="kw">false</span>, <span class="kw">function</span>(<span class="pm">v</span>)
+    <span class="pm">win</span>:<span class="fn">SetShadow</span>(<span class="pm">v</span>)
+<span class="kw">end</span>)</code></pre>
+      </div>
+    </section>
+
+    <section id="topbarbutton">
+      <h2>TopbarButton <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.5</span></h2>
+      <div class="method">
+        <div class="method-sig"><span class="mn">win</span>:<span class="fn">TopbarButton</span>(<span class="mp">glyph</span>: <span class="mt">string</span>, <span class="mp">callback</span>: <span class="mt">function</span>, <span class="mp">opts</span>?: <span class="mt">table</span>) &rarr; <span class="mt">TextButton | nil</span></div>
+        <div class="method-desc">Adds a custom control to the topbar, to the left of the built-in search button. Capped at five per window — returns <code>nil</code> and warns once the cap is hit. Pass <code>{ Icon = true }</code> in <code>opts</code> to treat <code>glyph</code> as a Lucide icon name instead of literal text.</div>
+      </div>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">win</span>:<span class="fn">TopbarButton</span>(<span class="st">"refresh-cw"</span>, <span class="kw">function</span>()
+    <span class="pm">win</span>:<span class="fn">Notify</span>(<span class="st">"Refreshed"</span>, <span class="st">""</span>, <span class="nm">2</span>, <span class="st">"right"</span>)
+<span class="kw">end</span>, { Icon = <span class="kw">true</span> })</code></pre>
+      </div>
+    </section>
+
     <section id="search">
       <h2>Search</h2>
-      <p>A ⌕ button sits in the topbar to the left of the minimize button. Clicking it opens a fullscreen overlay on top of the content area with an auto-focused search input. Every component registers itself automatically when created. Clicking a result activates it directly — toggles flip, buttons fire their callbacks, dropdowns scroll to the relevant tab and section.</p>
-      <p>Press <code>Escape</code> to close the overlay. The search state does not persist between open/close cycles.</p>
+      <p>A ⌕ button sits in the topbar to the left of the settings gear. Clicking it opens a small popup anchored under the topbar with an auto-focused search input. Every component registers itself automatically when created. Typing filters matching rows in place and jumps to the first tab containing a match, rather than listing results separately.</p>
+      <p>Press <code>Escape</code> or click outside the popup to close it. The search state does not persist between open/close cycles.</p>
     </section>
 
     <section id="save">
@@ -542,8 +666,12 @@ section[id]{scroll-margin-top:80px}
 
     <section id="icons">
       <h2>Icons</h2>
-      <p>Artemis uses the full <a href="https://lucide.dev" style="color:var(--accent)">Lucide</a> icon set (48px spritesheet) by default. Prefix any label string with <code>#iconname </code> to show that icon. Use <code>@iconname </code> to load from the <code>AltIconLibrary</code> instead.</p>
+      <p>Artemis uses the full <a href="https://lucide.dev" style="color:var(--accent)">Lucide</a> icon set (48px spritesheet) by default. Prefix any label string with <code>#iconname </code> to show that icon. Use <code>@iconname </code> to load from the <code>AltIconLibrary</code> instead, or <code>@image-&lt;src&gt; </code> to point directly at an asset id, <code>rbxassetid://</code>, <code>rbxthumb://</code>, or <code>https://</code> image — bypassing both icon libraries entirely.</p>
       <p>Icon prefixes work on Tab names, Section names, Button text, Toggle text, Slider text, Dropdown text, MultiDropdown text, ColorPicker text, and Keybind text.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="pm">sec</span>:<span class="fn">Button</span>(<span class="st">"@image-14038776235 Custom Icon"</span>, <span class="kw">function</span>() <span class="kw">end</span>)</code></pre>
+      </div>
       <div class="callout">
         <div class="callout-icon">✦</div>
         <p><strong>Icons load asynchronously.</strong> The library fetches over HTTP in a separate thread on startup. Icons render within a few frames of the UI appearing — no pop, no layout shift.</p>
@@ -567,12 +695,66 @@ section[id]{scroll-margin-top:80px}
     </section>
 
     <section id="mobile">
-      <h2>Mobile FAB <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.4</span></h2>
+      <h2>Mobile FAB</h2>
       <p>On touch-enabled devices, closing the window reveals a draggable Floating Action Button (FAB) in the left-center of the screen. Tapping it reopens the window. The FAB remembers its last dragged position between open/close cycles within the same session.</p>
       <p>A separate <code>MobileBtn</code> is also available at the left edge as an alternate re-open target. Both buttons support drag-to-reposition — a tap that doesn't move more than 5–6px is treated as a tap, not a drag.</p>
       <div class="callout callout-warn">
         <div class="callout-icon">&#9888;</div>
         <p>The FAB only appears when <code>UserInputService.TouchEnabled</code> is true. On desktop it stays hidden regardless of how the window is closed.</p>
+      </div>
+    </section>
+
+    <section id="sidebar-tabs">
+      <h2>Sidebar Tabs <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.5</span></h2>
+      <p>With <code>TabPosition = "left"</code> (the default), tabs render as a vertical rail on the left edge of the window instead of a horizontal strip under the topbar. The rail starts collapsed at <code>SidebarWidth</code>, showing only icons, and expands to <code>SidebarExpandedWidth</code> on hover to reveal labels and the profile block underneath. Set <code>TabPosition = "top"</code> to restore the v1.4 layout.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({ TabPosition = <span class="st">"top"</span> })</code></pre>
+      </div>
+      <p>The layout can also be flipped live from the built-in <a href="#settingspanel">Settings panel</a>, or persisted per-user — the choice is saved to the config file under <code>__tabside</code>.</p>
+    </section>
+
+    <section id="profile">
+      <h2>Profile Block <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.5</span></h2>
+      <p>Whichever tab layout is active, a small profile block renders the local player's avatar head-shot alongside <code>ProfileName</code> and <code>ProfileSubtext</code>. In sidebar mode it sits pinned to the bottom of the rail and only fully reveals the name/subtext once the rail is expanded; in top mode it sits in the topbar itself.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({
+    ProfileName    = <span class="st">"Guest"</span>,
+    ProfileSubtext = <span class="st">"Free Tier"</span>,
+})</code></pre>
+      </div>
+    </section>
+
+    <section id="split-sections">
+      <h2>Split Sections <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.5</span></h2>
+      <p>Every tab pane now lays out sections in up to two columns instead of a single stack. Calling <code>Section(name, "right")</code> for the first time within a tab activates the second column at a 50/50 split; subsequent calls without <code>"right"</code> keep going to the left column.</p>
+      <div class="code-wrap">
+        <button class="copy-btn" aria-label="Copy"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        <pre data-lang="lua"><code><span class="kw">local</span> <span class="pm">tab</span> = <span class="pm">win</span>:<span class="fn">Tab</span>(<span class="st">"#home Main"</span>)
+<span class="pm">tab</span>:<span class="fn">Section</span>(<span class="st">"#sword Combat"</span>)
+<span class="pm">tab</span>:<span class="fn">Section</span>(<span class="st">"#shield Defense"</span>, <span class="st">"right"</span>)</code></pre>
+      </div>
+    </section>
+
+    <section id="inline-keybinds">
+      <h2>Inline Keybinds <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.5</span></h2>
+      <p>Buttons and Toggles accept <code>Keybindable = true</code> in their <code>opts</code>, which draws a small key-icon pill inline that binds a global shortcut for that exact component — no need for a separate <code>Keybind</code> row. Right-click (or click the × once bound) to clear the bind. See the updated <a href="#button">Button</a> and <a href="#toggle">Toggle</a> docs for the full options table.</p>
+    </section>
+
+    <section id="settingspanel">
+      <h2>Settings Panel <span class="badge badge-new" style="font-size:10px;vertical-align:middle;margin-left:6px">v1.5</span></h2>
+      <p>A gear icon in the topbar opens a built-in popover with four controls, created automatically for every window:</p>
+      <table class="param-table">
+        <tr><th>Control</th><th>Description</th></tr>
+        <tr><td>Theme</td><td>Cycles through <code>win:GetThemes()</code> with ‹ › arrows, calling the same path as <code>SetTheme</code>.</td></tr>
+        <tr><td>Toggle Key</td><td>Click, then press any key to rebind the window show/hide shortcut. Equivalent to calling <code>SetToggleKey</code>.</td></tr>
+        <tr><td>Sidebar</td><td>Flips between <code>"left"</code> and <code>"top"</code> tab layouts live, with the same switch used by <code>TabPosition</code>.</td></tr>
+        <tr><td>Config</td><td>Lists saved <code>.json</code> files under <code>ArtemisUI/</code> (via <code>listfiles</code>) and imports the selected one, equivalent to <code>win:LoadConfig(name)</code>.</td></tr>
+      </table>
+      <div class="callout">
+        <div class="callout-icon">✦</div>
+        <p>Nothing to wire up on your end — the panel reads and writes the same <code>ConfigFile</code> and <code>Flags</code> as everything else, so switching configs from the panel updates every registered component instantly.</p>
       </div>
     </section>
 
@@ -585,12 +767,15 @@ section[id]{scroll-margin-top:80px}
 
 <span class="kw">local</span> <span class="pm">win</span> = <span class="ty">ArtemisUI</span>:<span class="fn">Window</span>({
     Title            = <span class="st">"ArtemisUI"</span>,
-    Subtitle         = <span class="st">"v1.4"</span>,
+    Subtitle         = <span class="st">"v1.5"</span>,
     Accent           = <span class="fn">Color3</span>.<span class="fn">fromRGB</span>(<span class="nm">108</span>, <span class="nm">99</span>, <span class="nm">255</span>),
     Icon             = <span class="st">"sword"</span>,
     ConfigFile       = <span class="st">"artemis_demo"</span>,
     LoadingAnimation = <span class="nm">2</span>,
     FadeToggle       = <span class="kw">true</span>,
+    Shadow           = <span class="kw">true</span>,
+    TabPosition      = <span class="st">"left"</span>,
+    ProfileSubtext   = <span class="st">"Premium"</span>,
     KeySystem        = {
         Title      = <span class="st">"Access Required"</span>,
         Subtitle   = <span class="st">"Enter the key from our Discord"</span>,

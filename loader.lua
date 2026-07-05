@@ -44,12 +44,19 @@ local function getIcon2(name)
 	return {id=r[1], imageRectSize=Vector2.new(r[2][1],r[2][2]), imageRectOffset=Vector2.new(r[3][1],r[3][2])}
 end
 
+local function avatarThumb(uid, w, h)
+	return "rbxthumb://type=AvatarHeadShot&id="..uid.."&w="..(w or 150).."&h="..(h or 150)
+end
+
 local function parseLabel(str)
 	local c = str:sub(1,1)
 	if c=="@" then
-		local n, t = str:match("^@([%a%-_]+)%s+(.+)$")
-		if not n then n = str:match("^@([%a%-_]+)$"); t = "" end
-		if n then return n:lower(), (t or ""), 2 end; return nil, str:sub(2), 1
+		local src, t = str:match("^@image%-(%S+)%s+(.+)$")
+		if not src then src = str:match("^@image%-(%S+)$"); t = "" end
+		if src then return src, (t or ""), 3 end
+		local n, t2 = str:match("^@([%a%-_]+)%s+(.+)$")
+		if not n then n = str:match("^@([%a%-_]+)$"); t2 = "" end
+		if n then return n:lower(), (t2 or ""), 2 end; return nil, str:sub(2), 1
 	elseif c=="#" then
 		local n, t = str:match("^#([%a%-_]+)%s+(.+)$")
 		if not n then n = str:match("^#([%a%-_]+)$"); t = "" end
@@ -135,6 +142,15 @@ local THEMES = {
 	},
 }
 
+local THEME_ACCENTS = {
+	Valence  = Color3.fromRGB(108,99,255),
+	Midnight = Color3.fromRGB(64,140,255),
+	Obsidian = Color3.fromRGB(214,214,214),
+	Dusk     = Color3.fromRGB(189,88,222),
+	Carbon   = Color3.fromRGB(56,189,204),
+	Ember    = Color3.fromRGB(255,133,51),
+}
+
 local BASE = {}
 for k, v in pairs(THEMES.Valence) do BASE[k] = v end
 
@@ -147,6 +163,15 @@ end
 
 local function mkIcon(parent, iconName, size, col, zi, lib)
 	local img = new("ImageLabel",{Size=UDim2.new(0,size,0,size),BackgroundTransparency=1,ImageColor3=col,ZIndex=zi or 4},parent)
+	if lib==3 then
+		local src=iconName
+		if src:match("^%d+$") then src="rbxassetid://"..src
+		elseif not src:match("^rbxassetid://") and not src:match("^rbxthumb://") and not src:match("^rbxasset://") and not src:match("^https?://") then
+			src="rbxassetid://"..src
+		end
+		img.Image=src; img.ImageColor3=Color3.new(1,1,1)
+		return img
+	end
 	task.spawn(function()
 		local dl = tick()+6; local asset
 		if lib==2 then while not Icons2 and tick()<dl do task.wait(0.1) end; asset=getIcon2(iconName)
@@ -176,6 +201,32 @@ local function twQuint(o,t,props) TweenService:Create(o,TweenInfo.new(t,Enum.Eas
 local function twBack(o,t,props) TweenService:Create(o,TweenInfo.new(t,Enum.EasingStyle.Back,Enum.EasingDirection.Out),props):Play() end
 local function twHover(o,t,props) TweenService:Create(o,TweenInfo.new(t,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),props):Play() end
 
+local function spawnOrbit(parent,cx,cy,radius,color,count)
+	count=count or 6
+	local dots={}
+	for i=1,count do
+		local d=new("Frame",{Size=UDim2.new(0,4,0,4),AnchorPoint=Vector2.new(0.5,0.5),BackgroundColor3=color,BackgroundTransparency=1,BorderSizePixel=0,ZIndex=503},parent)
+		corner(99,d); dots[i]=d
+	end
+	local running=true; local conn
+	local t0=tick()
+	conn=RunService.RenderStepped:Connect(function()
+		if not running then return end
+		local t=(tick()-t0)*3.2
+		for i,d in ipairs(dots) do
+			if d.Parent then
+				local a=t+(i-1)*(2*math.pi/count)
+				d.Position=UDim2.new(0.5,cx+math.cos(a)*radius,0,cy+math.sin(a)*radius)
+				d.BackgroundTransparency=1-(0.18+0.62*((math.sin(a-1.15)+1)/2))
+			end
+		end
+	end)
+	return function()
+		running=false; if conn then conn:Disconnect() end
+		for _,d in ipairs(dots) do if d.Parent then tw(d,0.22,{BackgroundTransparency=1}) end end
+	end
+end
+
 local function fadeGuiTreeOut(root,dur,style)
 	style=style or Enum.EasingStyle.Exponential; local tweens={}
 	local function add(obj,prop,target) table.insert(tweens,TweenService:Create(obj,TweenInfo.new(dur,style,Enum.EasingDirection.Out),{[prop]=target})) end
@@ -190,7 +241,12 @@ local function fadeGuiTreeOut(root,dur,style)
 end
 
 local function mkShadow(parent,color,alpha,zi)
-	--nothing
+	return new("ImageLabel",{
+		Image=SHADOW_IMG, ImageColor3=color, ImageTransparency=alpha,
+		ScaleType=Enum.ScaleType.Slice, SliceCenter=SHADOW_SLICE,
+		Size=UDim2.new(1,54,1,54), Position=UDim2.new(0,-27,0,-27),
+		BackgroundTransparency=1, ZIndex=zi or 1,
+	},parent)
 end
 
 local function mkGlowLine(parent,color,alpha,zi)
@@ -244,6 +300,8 @@ end
 
 function ArtemisUI:Window(cfg)
 	cfg=cfg or {}
+	local WIN_W       = cfg.Width  or WIN_W
+	local WIN_H       = cfg.Height or WIN_H
 	local TITLE       = cfg.Title            or "ArtemisUI"
 	local SUB         = cfg.Subtitle         or ""
 	local ACCENT      = cfg.Accent           or Color3.fromRGB(108,99,255)
@@ -251,8 +309,18 @@ function ArtemisUI:Window(cfg)
 	local LOAD_ANIM   = cfg.LoadingAnimation or 1
 	local FADE_TOGGLE = cfg.FadeToggle       == true
 	local LOGO_ID     = cfg.LogoId          or ""
+	local TAB_SIDE    = cfg.TabPosition=="top" and "top" or "left"
+	local RAIL_MIN    = cfg.SidebarWidth or 54
+	local RAIL_MAX    = cfg.SidebarExpandedWidth or 176
+	local PROFILE_H   = 58
+	local PROFILE_NAME= cfg.ProfileName or lp.DisplayName or lp.Name
+	local PROFILE_SUB = cfg.ProfileSubtext or ""
+	local BAR_H       = TAB_SIDE=="top" and TABBAR_H or 0
+	local BAR_W       = TAB_SIDE=="left" and RAIL_MIN or 0
+	local CONTENT_H   = WIN_H - TOPBAR_H - BAR_H
 	local FLAGS       = {}
 	local flagHandlers= {}
+	local toggleKey   = nil
 
 	pcall(function()
 		local e=game:GetService("CoreGui"):FindFirstChild("ArtemisUI"); if e then e:Destroy() end
@@ -267,18 +335,42 @@ function ArtemisUI:Window(cfg)
 
 	if CONFIG_FILE then pcall(function() makefolder("ArtemisUI") end); loadConfig(CONFIG_FILE,FLAGS) end
 
+	local function resolveTheme(name)
+		if not name then return nil, nil end
+		local t = THEMES[name]
+		if t then return t, name end
+		local lower = tostring(name):lower()
+		for k,v in pairs(THEMES) do if k:lower()==lower then return v, k end end
+		return nil, nil
+	end
+
+	local loadedThemeName = nil
 	if FLAGS["__theme"] then
-		local t = THEMES[FLAGS["__theme"]]
-		if t then for k,v in pairs(t) do BASE[k]=v end end
+		local t, resolved = resolveTheme(FLAGS["__theme"])
+		if t then for k,v in pairs(t) do BASE[k]=v end; FLAGS["__theme"]=resolved; loadedThemeName=resolved end
 	end
 	if FLAGS["__accent"] and type(FLAGS["__accent"])=="table" then
 		local a = FLAGS["__accent"]
 		if a[1] and a[2] and a[3] then ACCENT = Color3.new(a[1],a[2],a[3]) end
+	elseif loadedThemeName and THEME_ACCENTS[loadedThemeName] then
+		ACCENT = THEME_ACCENTS[loadedThemeName]
 	end
+	if FLAGS["__tabside"]=="left" or FLAGS["__tabside"]=="top" then TAB_SIDE=FLAGS["__tabside"] end
+	if FLAGS["__togglekey"] then
+		local ok,kc=pcall(function() return Enum.KeyCode[FLAGS["__togglekey"]] end)
+		if ok and kc then toggleKey=kc end
+	end
+	BAR_H     = TAB_SIDE=="top" and TABBAR_H or 0
+	BAR_W     = TAB_SIDE=="left" and RAIL_MIN or 0
+	CONTENT_H = WIN_H - TOPBAR_H - BAR_H
 	local AccentRefs = {}
+	local ThemeRefs  = {}
 	local rainbowConn = nil
 	local tabs={}; local tabBtns={}; local activeTab=nil
+	local railOpen=false; local railRows={}
 	local activateTab
+	local moveTabIndicator
+	local applyProfileLayout
 
 	local function buildC()
 		local r255,g255,b255 = ACCENT.R*255, ACCENT.G*255, ACCENT.B*255
@@ -290,13 +382,22 @@ function ArtemisUI:Window(cfg)
 		}
 	end
 
-	C = setmetatable(buildC(), {__index=BASE})
+	local C = setmetatable(buildC(), {__index=BASE})
 
 	local function regAc(obj, prop, mod)
 		if obj then table.insert(AccentRefs,{obj,prop,mod}) end; return obj
 	end
 	local function regAcIf(obj, prop, condFn, mod)
 		if obj then table.insert(AccentRefs,{obj,prop,mod,condFn}) end; return obj
+	end
+	local function regTh(obj, prop, key, condFn)
+		if obj then table.insert(ThemeRefs,{obj,prop,key,condFn}) end; return obj
+	end
+	local function applyTheme()
+		for _,ref in ipairs(ThemeRefs) do
+			local obj,prop,key,cond = ref[1],ref[2],ref[3],ref[4]
+			if obj and obj.Parent and (not cond or cond()) then obj[prop]=C[key] end
+		end
 	end
 
 	local function ApplyAccent(newAc)
@@ -317,14 +418,20 @@ function ArtemisUI:Window(cfg)
 
 	local gui=new("ScreenGui",{Name="ArtemisUI",ResetOnSpawn=false,ZIndexBehavior=Enum.ZIndexBehavior.Global,DisplayOrder=999,IgnoreGuiInset=true},game.CoreGui)
 
-	local shHolder=new("Frame",{Size=UDim2.new(0,WIN_W,0,WIN_H),Position=UDim2.new(0.5,-WIN_W/2,0.5,-WIN_H/2),BackgroundTransparency=1,BorderSizePixel=0,ClipsDescendants=true,ZIndex=1},gui)
-	corner(R.win,shHolder); mkShadow(shHolder,Color3.new(0,0,0),0.35,1)
+	local shHolder=new("Frame",{Size=UDim2.new(0,WIN_W,0,WIN_H),Position=UDim2.new(0.5,-WIN_W/2,0.5,-WIN_H/2),BackgroundTransparency=1,BorderSizePixel=0,ZIndex=1},gui)
+	corner(R.win,shHolder)
+	local shadowOn=cfg.Shadow==true
+	local shadowImg=mkShadow(shHolder,Color3.new(0,0,0),shadowOn and 0.5 or 1,1)
 
 	local win=new("Frame",{Name="Win",Size=UDim2.new(0,WIN_W,0,WIN_H),Position=UDim2.new(0.5,-WIN_W/2,0.5,-WIN_H/2),BackgroundColor3=C.bg1,BorderSizePixel=0,ClipsDescendants=true,ZIndex=2},gui)
+	regTh(win,"BackgroundColor3","bg1")
 	local ViewSz=workspace.CurrentCamera.ViewportSize
 	local AutoScale=math.clamp(math.min(ViewSz.X/1280,ViewSz.Y/720),0.65,1.25)
 	local uiScale=new("UIScale",{Scale=getgenv().Scale or AutoScale},win)
-	corner(R.win,win); local winStroke=outline(C.brd0,1,win)
+	corner(R.win,win)
+	local winChrome=new("Frame",{Name="Chrome",Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,BorderSizePixel=0,ZIndex=900},win)
+	corner(R.win,winChrome); local winStroke=outline(Color3.fromRGB(120,120,128),1,winChrome)
+	winStroke.Transparency=0.45
 
 	win.AnchorPoint = Vector2.new(0.5, 0.5)
 	shHolder.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -333,7 +440,7 @@ function ArtemisUI:Window(cfg)
 
 	local FULL_SIZE=UDim2.new(0,WIN_W,0,WIN_H)
 	local FULL_POS =UDim2.new(0.5,0,0.5,0)
-	local MIN_SIZE =UDim2.new(0,WIN_W,0,TOPBAR_H+TABBAR_H)
+	local MIN_SIZE =UDim2.new(0,WIN_W,0,TOPBAR_H+BAR_H)
 	local savedWinPos=FULL_POS; local savedShPos=FULL_POS
 
 	local fadeOverlay
@@ -450,14 +557,18 @@ function ArtemisUI:Window(cfg)
 		local progTrack=new("Frame",{Size=UDim2.new(0,200,0,3),Position=UDim2.new(0.5,-100,1,-18),BackgroundColor3=C.bg3,BorderSizePixel=0,ZIndex=502},loader); corner(2,progTrack)
 		local progFill=new("Frame",{Size=UDim2.new(0,0,1,0),BackgroundColor3=ACCENT,BorderSizePixel=0,ZIndex=503},progTrack); corner(2,progFill)
 		local watermark=new("TextLabel",{Size=UDim2.new(0,80,0,16),Position=UDim2.new(1,-96,1,-24),BackgroundTransparency=1,Text="ArtemisUI",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Right,TextTransparency=1,ZIndex=502},loader)
+		local stopOrbit
 		task.spawn(function()
 			task.wait(0.05); twQuint(topBar,0.55,{Size=UDim2.new(1,0,0,2)}); task.wait(0.2)
-			twBack(ldot,0.4,{Size=UDim2.new(0,7,0,7),Position=UDim2.new(0.5,0,0,6)}); task.wait(0.22)
-			lTitle.Position=UDim2.new(0,0,0,28); tw(lTitle,0.5,{TextTransparency=0,Position=UDim2.new(0,0,0,18)}); task.wait(0.18)
+			twBack(ldot,0.4,{Size=UDim2.new(0,7,0,7),Position=UDim2.new(0.5,0,0,6)})
+			stopOrbit=spawnOrbit(center,0,6,15,ACCENT,6)
+			task.wait(0.22)
+			lTitle.Position=UDim2.new(0,0,0,26); twBack(lTitle,0.5,{TextTransparency=0,Position=UDim2.new(0,0,0,18)}); task.wait(0.18)
 			twQuint(lLine,0.5,{Size=UDim2.new(0,200,0,2)}); task.wait(0.15)
 			tw(lSub,0.45,{TextTransparency=0}); task.wait(0.12)
 			tw(watermark,0.5,{TextTransparency=0.45}); task.wait(0.2)
 			twQuint(progFill,1.4,{Size=UDim2.new(1,0,1,0)}); task.wait(1.55)
+			if stopOrbit then stopOrbit() end
 			tw(loader,0.48,{BackgroundTransparency=1}); tw(lTitle,0.3,{TextTransparency=1}); tw(lSub,0.3,{TextTransparency=1})
 			tw(lLine,0.25,{BackgroundTransparency=1}); tw(topBar,0.3,{BackgroundTransparency=1})
 			tw(progFill,0.25,{BackgroundTransparency=1}); tw(progTrack,0.25,{BackgroundTransparency=1})
@@ -478,14 +589,18 @@ function ArtemisUI:Window(cfg)
 		local watermark=new("TextLabel",{Size=UDim2.new(0,80,0,16),Position=UDim2.new(1,-12,1,-18),AnchorPoint=Vector2.new(1,1),BackgroundTransparency=1,Text="ArtemisUI",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Right,TextTransparency=1,ZIndex=502},loader)
 		loader.Size=UDim2.new(0,0,0,0); loader.Position=UDim2.new(0.5,0,0.5,0)
 		twBack(loader,0.44,{Size=UDim2.new(0,WIN_W,0,WIN_H),Position=UDim2.new(0.5,-WIN_W/2,0.5,-WIN_H/2)})
+		local stopOrbit
 		task.spawn(function()
 			task.wait(0.52); twQuint(topBar,0.45,{Size=UDim2.new(1,0,0,2)}); task.wait(0.18)
-			twBack(ldot,0.35,{Size=UDim2.new(0,7,0,7),Position=UDim2.new(0.5,0,0,6)}); task.wait(0.2)
-			lTitle.Position=UDim2.new(0,0,0,28); tw(lTitle,0.4,{TextTransparency=0,Position=UDim2.new(0,0,0,18)}); task.wait(0.15)
+			twBack(ldot,0.35,{Size=UDim2.new(0,7,0,7),Position=UDim2.new(0.5,0,0,6)})
+			stopOrbit=spawnOrbit(center,0,6,15,ACCENT,6)
+			task.wait(0.2)
+			lTitle.Position=UDim2.new(0,0,0,26); twBack(lTitle,0.4,{TextTransparency=0,Position=UDim2.new(0,0,0,18)}); task.wait(0.15)
 			twQuint(lLine,0.4,{Size=UDim2.new(0,180,0,2)}); task.wait(0.12)
 			tw(lSub,0.35,{TextTransparency=0}); task.wait(0.1)
 			tw(watermark,0.4,{TextTransparency=0.45}); task.wait(0.18)
 			twQuint(progFill,1.2,{Size=UDim2.new(1,0,1,0)}); task.wait(1.4)
+			if stopOrbit then stopOrbit() end
 			tw(lTitle,0.22,{TextTransparency=1}); tw(lSub,0.22,{TextTransparency=1})
 			tw(lLine,0.2,{BackgroundTransparency=1}); tw(ldot,0.2,{BackgroundTransparency=1})
 			tw(topBar,0.22,{BackgroundTransparency=1}); tw(progFill,0.2,{BackgroundTransparency=1})
@@ -498,7 +613,7 @@ function ArtemisUI:Window(cfg)
 	end
 
 	local topbar=new("Frame",{Name="Topbar",Size=UDim2.new(1,0,0,TOPBAR_H),BackgroundColor3=C.bg1,BorderSizePixel=0,ZIndex=6},win)
-	corner(R.win,topbar)
+	corner(R.win,topbar); regTh(topbar,"BackgroundColor3","bg1")
 	new("Frame",{Size=UDim2.new(1,0,0,1),Position=UDim2.new(0,0,1,-1),BackgroundColor3=C.brd0,BackgroundTransparency=0.5,BorderSizePixel=0,ZIndex=7},topbar)
 
 	local titleRow=new("Frame",{Size=UDim2.new(0,360,1,0),BackgroundTransparency=1,ZIndex=7},topbar)
@@ -550,107 +665,381 @@ function ArtemisUI:Window(cfg)
 		return b
 	end
 
-	local closeBtn=mkCtrl(-34,"×"); local minBtn=mkCtrl(-62,"−"); local searchBtn=mkCtrl(-90,"",true)
+	local closeBtn=mkCtrl(-34,"×"); local minBtn=mkCtrl(-62,"−"); local settingsBtn=mkCtrl(-90,"",false); local searchBtn=mkCtrl(-118,"",true)
+	do
+		local gearImg=mkIcon(settingsBtn,"settings",12,C.textLo,10); gearImg.AnchorPoint=Vector2.new(0.5,0.5); gearImg.Position=UDim2.new(0.5,0,0.5,0); gearImg.Size=UDim2.new(0,12,0,12)
+		local gearStr=settingsBtn:FindFirstChildWhichIsA("UIStroke")
+		settingsBtn.MouseEnter:Connect(function() tw(gearImg,0.15,{ImageColor3=ACCENT}); if gearStr then tw(gearStr,0.15,{Color=ACCENT,Transparency=0.05}) end end)
+		settingsBtn.MouseLeave:Connect(function() tw(gearImg,0.2,{ImageColor3=C.textLo}); if gearStr then tw(gearStr,0.2,{Color=C.brd0,Transparency=0.45}) end end)
+	end
+	local customTopbarCount=0
 
-	local tabbar=new("Frame",{Name="Tabbar",Size=UDim2.new(1,0,0,TABBAR_H),Position=UDim2.new(0,0,0,TOPBAR_H),BackgroundColor3=C.bg1,BorderSizePixel=0,ZIndex=5},win)
-	corner(R.win,tabbar)
+	local tabbar=new("Frame",{Name="Tabbar",BackgroundColor3=C.bg1,BorderSizePixel=0,ZIndex=5},win)
+	corner(R.win,tabbar); regTh(tabbar,"BackgroundColor3","bg1")
 
-	local tabIndicator=new("Frame",{Size=UDim2.new(0,20,0,2),Position=UDim2.new(0,10,1,-1),BackgroundColor3=ACCENT,BorderSizePixel=0,ZIndex=8},tabbar)
+	local tabIndicator=new("Frame",{BackgroundColor3=ACCENT,BorderSizePixel=0,ZIndex=8},tabbar)
 	corner(1,tabIndicator); regAc(tabIndicator,"BackgroundColor3")
 
-	local tabHairline=new("Frame",{Size=UDim2.new(1,0,0,1),Position=UDim2.new(0,0,1,-1),BackgroundColor3=C.brd0,BackgroundTransparency=0.5,BorderSizePixel=0,ZIndex=6},tabbar)
-	new("UIGradient",{Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(0.08,0),NumberSequenceKeypoint.new(0.92,0),NumberSequenceKeypoint.new(1,1)})},tabHairline)
+	local tabHairline=new("Frame",{BackgroundColor3=C.brd0,BackgroundTransparency=0.5,BorderSizePixel=0,ZIndex=6},tabbar)
+	local tabHairGrad=new("UIGradient",{Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(0.08,0),NumberSequenceKeypoint.new(0.92,0),NumberSequenceKeypoint.new(1,1)})},tabHairline)
+	regTh(tabHairline,"BackgroundColor3","brd0")
 
-	local tabScroll=new("ScrollingFrame",{Size=UDim2.new(1,-8,1,0),Position=UDim2.new(0,4,0,0),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=0,ScrollingDirection=Enum.ScrollingDirection.X,CanvasSize=UDim2.new(0,0,1,0),AutomaticCanvasSize=Enum.AutomaticSize.X,ZIndex=6},tabbar)
-	new("UIListLayout",{Padding=UDim.new(0,2),FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,SortOrder=Enum.SortOrder.LayoutOrder},tabScroll)
-	inset(0,0,2,2,tabScroll)
+	local tabScroll=new("ScrollingFrame",{BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=0,ZIndex=6},tabbar)
 
-	local contentBg=new("Frame",{Size=UDim2.new(1,0,0,CONTENT_H),Position=UDim2.new(0,0,0,TOPBAR_H+TABBAR_H),BackgroundColor3=C.bg0,BorderSizePixel=0,ZIndex=1},win)
+	local contentBg, scroll, sideProfile, topProfile
+
+	local function relayoutTabbar()
+		if TAB_SIDE=="left" then
+			tabbar.ClipsDescendants=true
+			tw(tabbar,0.3,{Size=UDim2.new(0,RAIL_MIN,1,-TOPBAR_H),Position=UDim2.new(0,0,0,TOPBAR_H)},Enum.EasingStyle.Quint)
+			tabIndicator.Size=UDim2.new(0,2,0,20); tabIndicator.Position=UDim2.new(0,0,0,10)
+			tabHairline.Size=UDim2.new(0,1,1,0); tabHairline.Position=UDim2.new(1,-1,0,0); tabHairGrad.Rotation=90
+			local ol=tabScroll:FindFirstChildWhichIsA("UIListLayout"); if ol then ol:Destroy() end
+			local op=tabScroll:FindFirstChildWhichIsA("UIPadding"); if op then op:Destroy() end
+			tabScroll.Size=UDim2.new(1,0,1,-(8+PROFILE_H)); tabScroll.Position=UDim2.new(0,0,0,4)
+			tabScroll.ScrollingDirection=Enum.ScrollingDirection.Y; tabScroll.CanvasSize=UDim2.new(0,0,0,0); tabScroll.AutomaticCanvasSize=Enum.AutomaticSize.Y
+			new("UIListLayout",{Padding=UDim.new(0,2),FillDirection=Enum.FillDirection.Vertical,HorizontalAlignment=Enum.HorizontalAlignment.Center,SortOrder=Enum.SortOrder.LayoutOrder},tabScroll)
+			inset(6,6,6,6,tabScroll)
+		else
+			tabbar.ClipsDescendants=false
+			tw(tabbar,0.3,{Size=UDim2.new(1,0,0,TABBAR_H),Position=UDim2.new(0,0,0,TOPBAR_H)},Enum.EasingStyle.Quint)
+			tabIndicator.Size=UDim2.new(0,20,0,2); tabIndicator.Position=UDim2.new(0,10,1,-1)
+			tabHairline.Size=UDim2.new(1,0,0,1); tabHairline.Position=UDim2.new(0,0,1,-1); tabHairGrad.Rotation=0
+			local ol=tabScroll:FindFirstChildWhichIsA("UIListLayout"); if ol then ol:Destroy() end
+			local op=tabScroll:FindFirstChildWhichIsA("UIPadding"); if op then op:Destroy() end
+			tabScroll.Size=UDim2.new(1,-8,1,0); tabScroll.Position=UDim2.new(0,4,0,0)
+			tabScroll.ScrollingDirection=Enum.ScrollingDirection.X; tabScroll.CanvasSize=UDim2.new(0,0,1,0); tabScroll.AutomaticCanvasSize=Enum.AutomaticSize.X
+			new("UIListLayout",{Padding=UDim.new(0,2),FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,SortOrder=Enum.SortOrder.LayoutOrder},tabScroll)
+			inset(0,0,2,2,tabScroll)
+		end
+		if sideProfile then sideProfile.Visible=TAB_SIDE=="left" end
+		if topProfile then topProfile.Visible=TAB_SIDE=="top" end
+		railRows={}
+		for _,btn in pairs(tabBtns) do
+			local ol=btn:FindFirstChildWhichIsA("UIListLayout"); if ol then ol:Destroy() end
+			local op=btn:FindFirstChildWhichIsA("UIPadding"); if op then op:Destroy() end
+			local ic=btn:FindFirstChild("Icon")
+			local lbl=btn:FindFirstChild("Lbl")
+			if TAB_SIDE=="left" then
+				btn.Size=UDim2.new(1,0,0,32); btn.AutomaticSize=Enum.AutomaticSize.None
+				new("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,8),SortOrder=Enum.SortOrder.LayoutOrder},btn)
+				if ic then ic.AnchorPoint=Vector2.new(0,0); ic.Position=railOpen and UDim2.new(0,14,0.5,-6) or UDim2.new(0.5,-6,0.5,-6) end
+				if lbl then
+					lbl.Size=UDim2.new(1,-40,1,0); lbl.Position=UDim2.new(0,32,0,0); lbl.AutomaticSize=Enum.AutomaticSize.None
+					lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextTruncate=Enum.TextTruncate.AtEnd
+					lbl.TextTransparency=railOpen and 0 or 1
+				end
+				table.insert(railRows,{icon=ic,lbl=lbl})
+			else
+				btn.Size=UDim2.new(0,0,0,26); btn.AutomaticSize=Enum.AutomaticSize.X
+				new("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder},btn)
+				if ic then ic.AnchorPoint=Vector2.new(0,0) end
+				if lbl then
+					lbl.Size=UDim2.new(0,0,1,0); lbl.AutomaticSize=Enum.AutomaticSize.X
+					lbl.TextXAlignment=Enum.TextXAlignment.Left; lbl.TextTruncate=Enum.TextTruncate.None
+					lbl.TextTransparency=0
+				end
+			end
+			inset(0,0,12,12,btn)
+		end
+		BAR_H=TAB_SIDE=="top" and TABBAR_H or 0; BAR_W=TAB_SIDE=="left" and RAIL_MIN or 0
+		CONTENT_H=WIN_H-TOPBAR_H-BAR_H
+		tw(contentBg,0.3,{Size=UDim2.new(1,-BAR_W,0,CONTENT_H),Position=UDim2.new(0,BAR_W,0,TOPBAR_H+BAR_H)},Enum.EasingStyle.Quint)
+		tw(scroll,0.3,{Size=UDim2.new(1,-BAR_W,0,CONTENT_H),Position=UDim2.new(0,BAR_W,0,TOPBAR_H+BAR_H)},Enum.EasingStyle.Quint)
+		if activeTab then activateTab(activeTab) end
+	end
+
+	local function setRailExpanded(open)
+		railOpen=open
+		for _,row in ipairs(railRows) do
+			if row.icon then tw(row.icon,0.28,{Position=open and UDim2.new(0,14,0.5,-6) or UDim2.new(0.5,-6,0.5,-6)},Enum.EasingStyle.Quint) end
+			tw(row.lbl,open and 0.22 or 0.12,{TextTransparency=open and 0 or 1})
+		end
+		if applyProfileLayout then applyProfileLayout(open) end
+	end
+
+	do
+		local function expandRail()
+			if TAB_SIDE~="left" or railOpen then return end
+			setRailExpanded(true)
+			twBack(tabbar,0.32,{Size=UDim2.new(0,RAIL_MAX,1,-TOPBAR_H)})
+			twBack(contentBg,0.32,{Size=UDim2.new(1,-RAIL_MAX,0,CONTENT_H),Position=UDim2.new(0,RAIL_MAX,0,TOPBAR_H)})
+			twBack(scroll,0.32,{Size=UDim2.new(1,-RAIL_MAX,0,CONTENT_H),Position=UDim2.new(0,RAIL_MAX,0,TOPBAR_H)})
+		end
+		local function collapseRail()
+			if TAB_SIDE~="left" or not railOpen then return end
+			setRailExpanded(false)
+			tw(tabbar,0.24,{Size=UDim2.new(0,RAIL_MIN,1,-TOPBAR_H)},Enum.EasingStyle.Quint)
+			tw(contentBg,0.24,{Size=UDim2.new(1,-RAIL_MIN,0,CONTENT_H),Position=UDim2.new(0,RAIL_MIN,0,TOPBAR_H)},Enum.EasingStyle.Quint)
+			tw(scroll,0.24,{Size=UDim2.new(1,-RAIL_MIN,0,CONTENT_H),Position=UDim2.new(0,RAIL_MIN,0,TOPBAR_H)},Enum.EasingStyle.Quint)
+		end
+		tabbar.MouseEnter:Connect(expandRail)
+		tabbar.MouseLeave:Connect(collapseRail)
+		tabbar.MouseEnter:Connect(function() if TAB_SIDE=="left" then twHover(tabHairline,0.2,{BackgroundTransparency=0.1}) end end)
+		tabbar.MouseLeave:Connect(function() if TAB_SIDE=="left" then twHover(tabHairline,0.25,{BackgroundTransparency=0.5}) end end)
+	end
+
+	contentBg=new("Frame",{Size=UDim2.new(1,-BAR_W,0,CONTENT_H),Position=UDim2.new(0,BAR_W,0,TOPBAR_H+BAR_H),BackgroundColor3=C.bg0,BorderSizePixel=0,ZIndex=1},win)
 	corner(R.win,contentBg)
+	regTh(contentBg,"BackgroundColor3","bg0")
+	local capTL=new("Frame",{Size=UDim2.new(0,R.win,0,R.win),Position=UDim2.new(0,0,0,0),BackgroundColor3=C.bg0,BorderSizePixel=0,ZIndex=1},contentBg)
+	local capTR=new("Frame",{Size=UDim2.new(0,R.win,0,R.win),Position=UDim2.new(1,-R.win,0,0),BackgroundColor3=C.bg0,BorderSizePixel=0,ZIndex=1},contentBg)
+	regTh(capTL,"BackgroundColor3","bg0"); regTh(capTR,"BackgroundColor3","bg0")
 
-	local scroll=new("ScrollingFrame",{Name="Scroll",Size=UDim2.new(1,0,0,CONTENT_H),Position=UDim2.new(0,0,0,TOPBAR_H+TABBAR_H),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=3,ScrollBarImageColor3=C.brd1,ScrollBarImageTransparency=0.25,ScrollingDirection=Enum.ScrollingDirection.Y,CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.Y,ClipsDescendants=true,ZIndex=2},win)
+	scroll=new("ScrollingFrame",{Name="Scroll",Size=UDim2.new(1,-BAR_W,0,CONTENT_H),Position=UDim2.new(0,BAR_W,0,TOPBAR_H+BAR_H),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=3,ScrollBarImageColor3=C.brd1,ScrollBarImageTransparency=0.25,ScrollingDirection=Enum.ScrollingDirection.Y,CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.Y,ClipsDescendants=true,ZIndex=2},win)
 	vstack(14,scroll); inset(18,18,18,18,scroll)
+	regTh(scroll,"ScrollBarImageColor3","brd1")
 
-	local searchOverlay=new("Frame",{Name="SearchOverlay",Size=UDim2.new(1,0,0,CONTENT_H),Position=UDim2.new(0,0,0,TOPBAR_H+TABBAR_H),BackgroundColor3=C.bg0,BackgroundTransparency=0.04,BorderSizePixel=0,ClipsDescendants=true,ZIndex=50,Visible=false},win)
-	corner(R.win,searchOverlay); outline(C.brd1,1,searchOverlay)
-	local searchRow=new("Frame",{Size=UDim2.new(1,0,0,50),BackgroundColor3=C.bg2,BackgroundTransparency=0,BorderSizePixel=0,ZIndex=51},searchOverlay)
-	corner(R.win,searchRow)
-	regAc(mkGlowLine(searchRow,ACCENT,0.6,53),"BackgroundColor3")
-	local searchIconLbl=new("TextLabel",{Size=UDim2.new(0,44,1,-12),Position=UDim2.new(0,8,0,6),BackgroundTransparency=1,Text="⌕",TextColor3=ACCENT,Font=Enum.Font.GothamBold,TextSize=17,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,ZIndex=53},searchRow)
-	regAc(searchIconLbl,"TextColor3")
-	local searchFieldBg=new("Frame",{Size=UDim2.new(1,-64,1,-14),Position=UDim2.new(0,56,0,7),BackgroundColor3=C.bg3,BackgroundTransparency=0.1,BorderSizePixel=0,ZIndex=52},searchRow)
-	corner(R.elem,searchFieldBg); local searchFieldStr=outline(C.brd1,1,searchFieldBg)
-	local searchBox=new("TextBox",{Size=UDim2.new(1,-16,1,0),Position=UDim2.new(0,8,0,0),BackgroundTransparency=1,Text="",PlaceholderText="Search components...",TextColor3=C.textHi,PlaceholderColor3=C.textLo,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,TextYAlignment=Enum.TextYAlignment.Center,ClearTextOnFocus=false,MultiLine=false,BorderSizePixel=0,ZIndex=54},searchFieldBg)
-	inset(2,2,2,6,searchBox)
-	searchBox.Focused:Connect(function() tw(searchFieldStr,0.15,{Color=ACCENT,Transparency=0,Thickness=1.5}); tw(searchFieldBg,0.15,{BackgroundColor3=C.bg4,BackgroundTransparency=0}) end)
-	searchBox.FocusLost:Connect(function() tw(searchFieldStr,0.2,{Color=C.brd1,Transparency=0,Thickness=1}); tw(searchFieldBg,0.2,{BackgroundColor3=C.bg3,BackgroundTransparency=0.1}) end)
-	new("Frame",{Size=UDim2.new(1,0,0,1),Position=UDim2.new(0,0,1,-1),BackgroundColor3=C.brd0,BackgroundTransparency=0.4,BorderSizePixel=0,ZIndex=51},searchRow)
-	local searchResultsScroll=new("ScrollingFrame",{Size=UDim2.new(1,0,1,-50),Position=UDim2.new(0,0,0,50),BackgroundTransparency=1,BorderSizePixel=0,ScrollBarThickness=3,ScrollBarImageColor3=C.brd1,ScrollBarImageTransparency=0.2,ScrollingDirection=Enum.ScrollingDirection.Y,CanvasSize=UDim2.new(0,0,0,0),AutomaticCanvasSize=Enum.AutomaticSize.Y,ClipsDescendants=true,ZIndex=51},searchOverlay)
-	vstack(0,searchResultsScroll); inset(6,6,0,0,searchResultsScroll)
-	local noResultsLbl=new("TextLabel",{Name="NoResults",Size=UDim2.new(0,0,0,0),BackgroundTransparency=1,Text="No results",TextColor3=C.textLo,Font=Enum.Font.Gotham,TextSize=12,TextXAlignment=Enum.TextXAlignment.Center,TextYAlignment=Enum.TextYAlignment.Center,LayoutOrder=-1,ZIndex=52,Visible=false},searchResultsScroll)
+	do
+		sideProfile=new("Frame",{Name="Profile",Size=UDim2.new(1,0,0,PROFILE_H),AnchorPoint=Vector2.new(0,1),Position=UDim2.new(0,0,1,0),BackgroundTransparency=1,BorderSizePixel=0,ZIndex=6},tabbar)
+		local profDiv=new("Frame",{Size=UDim2.new(1,-12,0,1),Position=UDim2.new(0,6,0,0),BackgroundColor3=C.brd0,BackgroundTransparency=0.55,BorderSizePixel=0,ZIndex=6},sideProfile)
+		regTh(profDiv,"BackgroundColor3","brd0")
+		local avatarImg=new("ImageLabel",{Size=UDim2.new(0,26,0,26),Position=UDim2.new(0.5,-13,0,16),BackgroundColor3=C.bg3,BorderSizePixel=0,Image=avatarThumb(lp.UserId,150,150),ZIndex=7},sideProfile)
+		corner(13,avatarImg); regTh(avatarImg,"BackgroundColor3","bg3")
+		local avatarStr=outline(C.brd1,1,avatarImg); regTh(avatarStr,"Color","brd1")
+		local profName=new("TextLabel",{Name="Name",Size=UDim2.new(1,-8,0,12),Position=UDim2.new(0,4,0,36),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_NAME,TextColor3=C.textHi,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Center,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=7},sideProfile)
+		regTh(profName,"TextColor3","textHi")
+		local profSub=nil
+		if PROFILE_SUB~="" then
+			profSub=new("TextLabel",{Name="Sub",Size=UDim2.new(1,-8,0,10),Position=UDim2.new(0,4,0,48),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_SUB,TextColor3=C.textLo,Font=Enum.Font.Gotham,TextSize=8,TextXAlignment=Enum.TextXAlignment.Center,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=7},sideProfile)
+			regTh(profSub,"TextColor3","textLo")
+		end
+		applyProfileLayout=function(open)
+			if open then
+				tw(avatarImg,0.26,{Size=UDim2.new(0,30,0,30),Position=UDim2.new(0,12,0,10)},Enum.EasingStyle.Quint)
+				profName.TextXAlignment=Enum.TextXAlignment.Left
+				tw(profName,0.26,{Size=UDim2.new(1,-54,0,13),Position=UDim2.new(0,50,0,profSub and 14 or 20),TextTransparency=0},Enum.EasingStyle.Quint)
+				if profSub then profSub.TextXAlignment=Enum.TextXAlignment.Left; tw(profSub,0.26,{Size=UDim2.new(1,-54,0,11),Position=UDim2.new(0,50,0,29),TextTransparency=0},Enum.EasingStyle.Quint) end
+			else
+				tw(avatarImg,0.22,{Size=UDim2.new(0,26,0,26),Position=UDim2.new(0.5,-13,0,16)},Enum.EasingStyle.Quint)
+				profName.TextXAlignment=Enum.TextXAlignment.Center
+				tw(profName,0.22,{Size=UDim2.new(1,-8,0,12),Position=UDim2.new(0,4,0,36),TextTransparency=1},Enum.EasingStyle.Quint)
+				if profSub then profSub.TextXAlignment=Enum.TextXAlignment.Center; tw(profSub,0.22,{Size=UDim2.new(1,-8,0,10),Position=UDim2.new(0,4,0,48),TextTransparency=1},Enum.EasingStyle.Quint) end
+			end
+		end
+
+		topProfile=new("Frame",{Name="Profile",Size=UDim2.new(0,150,0,30),Position=UDim2.new(1,-278,0.5,-15),BackgroundTransparency=1,BorderSizePixel=0,Visible=false,ZIndex=7},topbar)
+		local topAvatar=new("ImageLabel",{Size=UDim2.new(0,26,0,26),Position=UDim2.new(0,0,0.5,-13),BackgroundColor3=C.bg3,BorderSizePixel=0,Image=avatarThumb(lp.UserId,150,150),ZIndex=8},topProfile)
+		corner(13,topAvatar); regTh(topAvatar,"BackgroundColor3","bg3")
+		local topAvatarStr=outline(C.brd1,1,topAvatar); regTh(topAvatarStr,"Color","brd1")
+		local topName=new("TextLabel",{Size=UDim2.new(1,-34,0,13),Position=UDim2.new(0,34,0.5,PROFILE_SUB~="" and -14 or -6),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_NAME,TextColor3=C.textHi,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=8},topProfile)
+		regTh(topName,"TextColor3","textHi")
+		local topSub=nil
+		if PROFILE_SUB~="" then
+			topSub=new("TextLabel",{Size=UDim2.new(1,-34,0,11),Position=UDim2.new(0,34,0.5,2),BackgroundTransparency=1,TextTransparency=1,Text=PROFILE_SUB,TextColor3=C.textLo,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=8},topProfile)
+			regTh(topSub,"TextColor3","textLo")
+		end
+		topProfile.MouseEnter:Connect(function()
+			twHover(topName,0.16,{TextTransparency=0})
+			if topSub then twHover(topSub,0.16,{TextTransparency=0}) end
+		end)
+		topProfile.MouseLeave:Connect(function()
+			twHover(topName,0.2,{TextTransparency=1})
+			if topSub then twHover(topSub,0.2,{TextTransparency=1}) end
+		end)
+	end
+
+	relayoutTabbar()
 
 	local searchRegistry={}
-	local function rebuildResults(query)
-		for _,ch in ipairs(searchResultsScroll:GetChildren()) do if ch:IsA("Frame") or ch:IsA("TextButton") then ch:Destroy() end end
+
+	local function applySearchFilter(query)
 		query=string.lower(string.match(query,"^%s*(.-)%s*$"))
-		local matches={}
+		if query=="" then
+			for _,entry in ipairs(searchRegistry) do if entry.row then entry.row.Visible=true end end
+			return
+		end
+		local jumpTo=nil
 		for _,entry in ipairs(searchRegistry) do
-			if query=="" or string.find(string.lower(entry.label),query,1,true) then table.insert(matches,entry) end
+			local match=string.find(string.lower(entry.label),query,1,true)~=nil
+			if entry.row then entry.row.Visible=match end
+			if match and not jumpTo then jumpTo=entry.tabName end
 		end
-		local empty=(#matches==0); noResultsLbl.Visible=empty; noResultsLbl.Size=empty and UDim2.new(1,-12,0,44) or UDim2.new(0,0,0,0)
-		local ri=0
-		for _,entry in ipairs(matches) do
-			ri=ri+1
-			local row=new("TextButton",{Size=UDim2.new(1,0,0,38),BackgroundTransparency=1,Text="",BorderSizePixel=0,LayoutOrder=ri,ZIndex=52},searchResultsScroll)
-			corner(R.elem,row); inset(0,0,14,14,row)
-			local rowStr=outline(C.brd0,1,row); rowStr.Transparency=0.88
-			new("TextLabel",{Size=UDim2.new(0,52,1,0),BackgroundTransparency=1,Text=entry.kind,TextColor3=C.textLo,Font=Enum.Font.Gotham,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=53},row)
-			local labelLbl=new("TextLabel",{Size=UDim2.new(1,-68,1,0),Position=UDim2.new(0,56,0,0),BackgroundTransparency=1,Text=entry.label,TextColor3=C.textMid,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=53},row)
-			local chevLbl=new("TextLabel",{Size=UDim2.new(0,14,1,0),Position=UDim2.new(1,-14,0,0),BackgroundTransparency=1,Text="›",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=14,ZIndex=53},row)
-			row.MouseEnter:Connect(function() twHover(row,0.12,{BackgroundColor3=C.bg3,BackgroundTransparency=0.38}); twHover(labelLbl,0.12,{TextColor3=C.textHi}); twHover(chevLbl,0.12,{TextColor3=ACCENT}); twHover(rowStr,0.12,{Transparency=0.32,Color=ACCENT}) end)
-			row.MouseLeave:Connect(function() twHover(row,0.18,{BackgroundTransparency=1}); twHover(labelLbl,0.18,{TextColor3=C.textMid}); twHover(chevLbl,0.18,{TextColor3=C.textLo}); twHover(rowStr,0.18,{Transparency=0.88,Color=C.brd0}) end)
-			row.MouseButton1Click:Connect(function() if entry.cb then entry.cb() end end)
-			new("Frame",{Size=UDim2.new(1,-10,0,1),Position=UDim2.new(0,5,1,-1),BackgroundColor3=C.brd0,BackgroundTransparency=0.6,BorderSizePixel=0,ZIndex=52},row)
-		end
+		if jumpTo and jumpTo~=activeTab then activateTab(jumpTo) end
 	end
 
+	local searchPop=new("Frame",{Name="SearchPop",Size=UDim2.new(0,236,0,38),Position=UDim2.new(1,-118,0,TOPBAR_H+6),AnchorPoint=Vector2.new(1,0),BackgroundColor3=C.bg2,BorderSizePixel=0,ClipsDescendants=true,Visible=false,ZIndex=60},win)
+	corner(R.elem,searchPop); local searchPopStr=outline(C.brd1,1,searchPop); regTh(searchPop,"BackgroundColor3","bg2"); regTh(searchPopStr,"Color","brd1")
+	regAc(mkGlowLine(searchPop,ACCENT,0.55,62),"BackgroundColor3")
+	local searchBox=new("TextBox",{Size=UDim2.new(1,-24,1,0),Position=UDim2.new(0,12,0,0),BackgroundTransparency=1,Text="",PlaceholderText="Search and jump...",TextColor3=C.textHi,PlaceholderColor3=C.textLo,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ClearTextOnFocus=false,BorderSizePixel=0,ZIndex=61},searchPop)
 	local searchOpen=false
 	local function openSearch()
-		searchOpen=true; searchOverlay.Visible=true; searchOverlay.BackgroundTransparency=1
-		searchBox.Text=""; rebuildResults(""); tw(searchOverlay,0.22,{BackgroundTransparency=0.04})
-		task.defer(function() searchBox:CaptureFocus() end)
+		searchOpen=true; searchPop.Visible=true; searchPop.Size=UDim2.new(0,0,0,38)
+		twBack(searchPop,0.26,{Size=UDim2.new(0,236,0,38)}); task.defer(function() searchBox:CaptureFocus() end)
 	end
 	local function closeSearch()
-		searchOpen=false; tw(searchOverlay,0.18,{BackgroundTransparency=1})
-		task.delay(0.18,function() if not searchOpen then searchOverlay.Visible=false end end)
+		searchOpen=false; tw(searchPop,0.18,{Size=UDim2.new(0,0,0,38)})
+		task.delay(0.18,function() if not searchOpen then searchPop.Visible=false end end)
+		searchBox.Text=""; applySearchFilter("")
 	end
 	searchBtn.MouseButton1Click:Connect(function() if searchOpen then closeSearch() else openSearch() end end)
-	searchBox:GetPropertyChangedSignal("Text"):Connect(function() rebuildResults(searchBox.Text) end)
+	searchBox:GetPropertyChangedSignal("Text"):Connect(function() applySearchFilter(searchBox.Text) end)
 	UserInputService.InputBegan:Connect(function(i,gp)
 		if gp then return end; if searchOpen and i.KeyCode==Enum.KeyCode.Escape then closeSearch() end
 	end)
 
-	local function moveTabIndicator(name)
+	local function applyThemeByName(nm)
+		local t,resolved=resolveTheme(nm)
+		if not t then return end
+		for k,v in pairs(t) do BASE[k]=v; C[k]=v end
+		applyTheme()
+		if not FLAGS["__accent"] and THEME_ACCENTS[resolved] then ApplyAccent(THEME_ACCENTS[resolved]) end
+		FLAGS["__theme"]=resolved; saveConfig(CONFIG_FILE,FLAGS)
+	end
+
+	local settingsPop=new("Frame",{Name="SettingsPop",Size=UDim2.new(0,224,0,178),Position=UDim2.new(1,-90,0,TOPBAR_H+6),AnchorPoint=Vector2.new(1,0),BackgroundColor3=C.bg2,BorderSizePixel=0,ClipsDescendants=true,Visible=false,ZIndex=60},win)
+	corner(R.card,settingsPop); local settingsPopStr=outline(C.brd1,1,settingsPop); regTh(settingsPop,"BackgroundColor3","bg2"); regTh(settingsPopStr,"Color","brd1")
+	regAc(mkGlowLine(settingsPop,ACCENT,0.55,62),"BackgroundColor3")
+	inset(14,14,14,14,settingsPop); vstack(12,settingsPop)
+
+	local function settingsRow(label)
+		local row=new("Frame",{Size=UDim2.new(1,0,0,20),BackgroundTransparency=1,ZIndex=61},settingsPop)
+		new("TextLabel",{Size=UDim2.new(0.42,0,1,0),BackgroundTransparency=1,Text=label,TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=61},row)
+		regTh(row:FindFirstChildWhichIsA("TextLabel"),"TextColor3","textLo")
+		local ctrl=new("Frame",{Size=UDim2.new(0.58,0,1,0),Position=UDim2.new(0.42,0,0,0),BackgroundTransparency=1,ZIndex=61},row)
+		new("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,HorizontalAlignment=Enum.HorizontalAlignment.Right,Padding=UDim.new(0,4),SortOrder=Enum.SortOrder.LayoutOrder},ctrl)
+		return ctrl
+	end
+
+	local themeNames=(function() local out={}; for k in pairs(THEMES) do table.insert(out,k) end; table.sort(out); return out end)()
+	local themeIdx=1
+	for i,nm in ipairs(themeNames) do if nm==(FLAGS["__theme"] or "Valence") then themeIdx=i end end
+	local themeCtrl=settingsRow("Theme")
+	local themePrev=new("TextButton",{Size=UDim2.new(0,18,0,18),BackgroundColor3=C.bg4,Text="‹",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=12,BorderSizePixel=0,ZIndex=62,LayoutOrder=1},themeCtrl)
+	corner(5,themePrev); outline(C.brd0,1,themePrev)
+	local themeLbl=new("TextLabel",{Size=UDim2.new(0,66,1,0),BackgroundTransparency=1,Text=themeNames[themeIdx] or "Valence",TextColor3=ACCENT,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Center,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=62,LayoutOrder=2},themeCtrl)
+	regAc(themeLbl,"TextColor3")
+	local themeNext=new("TextButton",{Size=UDim2.new(0,18,0,18),BackgroundColor3=C.bg4,Text="›",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=12,BorderSizePixel=0,ZIndex=62,LayoutOrder=3},themeCtrl)
+	corner(5,themeNext); outline(C.brd0,1,themeNext)
+	local function cycleTheme(dir)
+		themeIdx=((themeIdx-1+dir)%#themeNames)+1
+		themeLbl.Text=themeNames[themeIdx]; applyThemeByName(themeNames[themeIdx])
+	end
+	themePrev.MouseButton1Click:Connect(function() cycleTheme(-1) end)
+	themeNext.MouseButton1Click:Connect(function() cycleTheme(1) end)
+
+	local kbCtrl=settingsRow("Toggle Key")
+	local kbPill=new("TextButton",{Size=UDim2.new(0,66,0,18),BackgroundColor3=C.bg4,Text=toggleKey and tostring(toggleKey):gsub("Enum%.KeyCode%.","") or "Unbound",TextColor3=ACCENT,Font=Enum.Font.GothamBold,TextSize=10,BorderSizePixel=0,ZIndex=62},kbCtrl)
+	corner(5,kbPill); outline(C.brd0,1,kbPill); regAc(kbPill,"TextColor3")
+	local kbBinding=false
+	kbPill.MouseButton1Click:Connect(function() kbBinding=true; kbPill.Text="..." end)
+	UserInputService.InputBegan:Connect(function(i,gp)
+		if not kbBinding then return end
+		if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode~=Enum.KeyCode.Unknown then
+			kbBinding=false; toggleKey=i.KeyCode
+			kbPill.Text=tostring(toggleKey):gsub("Enum%.KeyCode%.",""); FLAGS["__togglekey"]=kbPill.Text; saveConfig(CONFIG_FILE,FLAGS)
+		end
+	end)
+
+	local sideCtrl=settingsRow("Sidebar")
+	local sideTrack=new("Frame",{Size=UDim2.new(0,38,0,18),BackgroundColor3=TAB_SIDE=="left" and ACCENT or C.bg4,BorderSizePixel=0,ZIndex=62},sideCtrl)
+	corner(9,sideTrack); local sideStr=outline(TAB_SIDE=="left" and ACCENT or C.brd1,1,sideTrack)
+	local sideKnob=new("Frame",{Size=UDim2.new(0,12,0,12),Position=UDim2.new(0,TAB_SIDE=="left" and 23 or 3,0.5,-6),BackgroundColor3=C.white,BorderSizePixel=0,ZIndex=63},sideTrack)
+	corner(6,sideKnob)
+	local sideHit=new("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text="",BorderSizePixel=0,ZIndex=64},sideTrack)
+	sideHit.MouseButton1Click:Connect(function()
+		TAB_SIDE=TAB_SIDE=="left" and "top" or "left"
+		tw(sideTrack,0.2,{BackgroundColor3=TAB_SIDE=="left" and ACCENT or C.bg4}); tw(sideStr,0.2,{Color=TAB_SIDE=="left" and ACCENT or C.brd1})
+		TweenService:Create(sideKnob,TweenInfo.new(0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out),{Position=UDim2.new(0,TAB_SIDE=="left" and 23 or 3,0.5,-6)}):Play()
+		FLAGS["__tabside"]=TAB_SIDE; saveConfig(CONFIG_FILE,FLAGS)
+		relayoutTabbar()
+	end)
+
+	local function listSavedConfigs()
+		local out={}
+		if listfiles then
+			local ok,files=pcall(listfiles,"ArtemisUI")
+			if ok and files then
+				for _,path in ipairs(files) do
+					local nm=path:match("([^/\\]+)%.json$")
+					if nm then table.insert(out,nm) end
+				end
+			end
+		end
+		table.sort(out)
+		return out
+	end
+
+	local cfgCtrl=settingsRow("Config")
+	local cfgNames=listSavedConfigs(); local cfgIdx=1
+	local cfgLbl=new("TextLabel",{Size=UDim2.new(0,66,1,0),BackgroundTransparency=1,Text=cfgNames[1] or "none",TextColor3=ACCENT,Font=Enum.Font.GothamBold,TextSize=10,TextXAlignment=Enum.TextXAlignment.Center,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=62,LayoutOrder=1},cfgCtrl)
+	regAc(cfgLbl,"TextColor3")
+	local cfgImport=new("TextButton",{Size=UDim2.new(0,18,0,18),BackgroundColor3=C.bg4,Text="↓",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=11,BorderSizePixel=0,ZIndex=62,LayoutOrder=2},cfgCtrl)
+	corner(5,cfgImport); outline(C.brd0,1,cfgImport)
+	local function refreshCfgNames()
+		cfgNames=listSavedConfigs()
+		if #cfgNames==0 then cfgIdx=1; cfgLbl.Text="none"; return end
+		cfgIdx=math.clamp(cfgIdx,1,#cfgNames); cfgLbl.Text=cfgNames[cfgIdx]
+	end
+	cfgCtrl.MouseEnter:Connect(refreshCfgNames)
+	local cfgPrev=new("TextButton",{Size=UDim2.new(0,18,0,18),BackgroundColor3=C.bg4,Text="‹",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=12,BorderSizePixel=0,ZIndex=62,LayoutOrder=0},cfgCtrl)
+	corner(5,cfgPrev); outline(C.brd0,1,cfgPrev)
+	cfgPrev.MouseButton1Click:Connect(function()
+		if #cfgNames==0 then return end
+		cfgIdx=((cfgIdx-2)%#cfgNames)+1; cfgLbl.Text=cfgNames[cfgIdx]
+	end)
+	cfgImport.MouseButton1Click:Connect(function()
+		local nm=cfgNames[cfgIdx]; if not nm then return end
+		loadConfig(nm,FLAGS)
+		for flag,handler in pairs(flagHandlers) do if FLAGS[flag]~=nil then handler(FLAGS[flag]) end end
+		twHover(cfgImport,0.15,{BackgroundColor3=ACCENT}); task.delay(0.15,function() twHover(cfgImport,0.2,{BackgroundColor3=C.bg4}) end)
+	end)
+
+	local settingsOpen=false
+	local function openSettings()
+		settingsOpen=true; settingsPop.Visible=true; settingsPop.Size=UDim2.new(0,224,0,0)
+		twBack(settingsPop,0.28,{Size=UDim2.new(0,224,0,178)})
+	end
+	local function closeSettings()
+		settingsOpen=false; tw(settingsPop,0.2,{Size=UDim2.new(0,224,0,0)})
+		task.delay(0.2,function() if not settingsOpen then settingsPop.Visible=false end end)
+	end
+	settingsBtn.MouseButton1Click:Connect(function() if settingsOpen then closeSettings() else openSettings() end end)
+
+	local function pointInside(pos,frame)
+		local a=frame.AbsolutePosition; local s=frame.AbsoluteSize
+		return pos.X>=a.X and pos.X<=a.X+s.X and pos.Y>=a.Y and pos.Y<=a.Y+s.Y
+	end
+
+	UserInputService.InputBegan:Connect(function(i,gp)
+		if i.UserInputType~=Enum.UserInputType.MouseButton1 and i.UserInputType~=Enum.UserInputType.Touch then return end
+		if gp then return end
+		local mp=UserInputService:GetMouseLocation()
+		if searchOpen and not pointInside(mp,searchPop) and not pointInside(mp,searchBtn) then closeSearch() end
+		if settingsOpen and not pointInside(mp,settingsPop) and not pointInside(mp,settingsBtn) then closeSettings() end
+	end)
+
+	moveTabIndicator = function(name)
 		local btn=tabBtns[name]; if not btn or not btn.Parent then return end
 		task.defer(function()
 			if not btn.Parent then return end
 			while btn.AbsoluteSize.X==0 or tabbar.AbsoluteSize.X==0 do task.wait(); if not btn.Parent then return end end
 			local sc=uiScale.Scale
-			local relX=(btn.AbsolutePosition.X-tabbar.AbsolutePosition.X)/sc
-			local w=btn.AbsoluteSize.X/sc
-			tw(tabIndicator,0.3,{Position=UDim2.new(0,relX,1,-1),Size=UDim2.new(0,w,0,2)},Enum.EasingStyle.Quint)
+			if TAB_SIDE=="left" then
+				local relY=(btn.AbsolutePosition.Y-tabbar.AbsolutePosition.Y)/sc
+				local h=btn.AbsoluteSize.Y/sc
+				tw(tabIndicator,0.3,{Position=UDim2.new(0,0,0,relY),Size=UDim2.new(0,2,0,h)},Enum.EasingStyle.Quint)
+			else
+				local relX=(btn.AbsolutePosition.X-tabbar.AbsolutePosition.X)/sc
+				local w=btn.AbsoluteSize.X/sc
+				tw(tabIndicator,0.3,{Position=UDim2.new(0,relX,1,-1),Size=UDim2.new(0,w,0,2)},Enum.EasingStyle.Quint)
+			end
 		end)
 	end
 
 	local function staggerSections(pane)
 		local idx=0
-		for _,child in ipairs(pane:GetChildren()) do
-			if child:IsA("Frame") and child.Name:find("_Wrap") then
-				idx=idx+1; child.BackgroundTransparency=1; child.Position=UDim2.new(0,-8,0,0)
-				local delay=(idx-1)*0.055
-				task.delay(delay,function() if child.Parent then tw(child,0.3,{Position=UDim2.new(0,0,0,0)},Enum.EasingStyle.Quint) end end)
+		local function run(container)
+			if not container then return end
+			for _,child in ipairs(container:GetChildren()) do
+				if child:IsA("Frame") and child.Name:find("_Wrap") then
+					idx=idx+1; child.BackgroundTransparency=1; child.Position=UDim2.new(0,-8,0,0)
+					local delay=(idx-1)*0.055
+					task.delay(delay,function() if child.Parent then tw(child,0.3,{Position=UDim2.new(0,0,0,0)},Enum.EasingStyle.Quint) end end)
+				end
 			end
 		end
+		run(pane:FindFirstChild("ColL")); run(pane:FindFirstChild("ColR"))
 	end
 
 	activateTab = function(name)
@@ -674,14 +1063,14 @@ function ArtemisUI:Window(cfg)
 		activeTab=name; moveTabIndicator(name)
 	end
 
-	local winVisible=true; local toggleKey=nil
+	local winVisible=true
 
 	local fabHolder=new("Frame",{Name="FABHolder",Size=UDim2.new(0,54,0,54),Position=UDim2.new(0,-80,0.5,-27),BackgroundTransparency=1,BorderSizePixel=0,ZIndex=500,Visible=false},gui)
 	local fabCustomPos = nil
 	local fabDefaultPos = UDim2.new(0, 18, 0.5, -27)
 	mkShadow(fabHolder,Color3.new(0,0,0),0.45,499)
 	local fab=new("TextButton",{Name="FAB",Size=UDim2.new(1,0,1,0),BackgroundColor3=C.bg2,BorderSizePixel=0,Text="",ZIndex=501,AutoButtonColor=false},fabHolder)
-	corner(16,fab)
+	corner(16,fab); regTh(fab,"BackgroundColor3","bg2")
 	local fabStr=outline(ACCENT,1.5,fab); fabStr.Transparency=0.25; regAc(fabStr,"Color")
 	local fabImg=mkIcon(fab,"eye",22,C.textHi,502)
 	fabImg.AnchorPoint=Vector2.new(0.5,0.5); fabImg.Position=UDim2.new(0.5,0,0.5,0); fabImg.Size=UDim2.new(0,22,0,22)
@@ -815,7 +1204,7 @@ function ArtemisUI:Window(cfg)
 	local isMin=false
 	minBtn.MouseButton1Click:Connect(function()
 		isMin=not isMin
-		if isMin then tw(win,0.28,{Size=MIN_SIZE},Enum.EasingStyle.Quint); tw(shHolder,0.28,{Size=MIN_SIZE},Enum.EasingStyle.Quint)
+		if isMin then local ms=UDim2.new(0,WIN_W,0,TOPBAR_H+BAR_H); tw(win,0.28,{Size=ms},Enum.EasingStyle.Quint); tw(shHolder,0.28,{Size=ms},Enum.EasingStyle.Quint)
 		else twBack(win,0.38,{Size=FULL_SIZE}); twBack(shHolder,0.38,{Size=FULL_SIZE}) end
 	end)
 
@@ -843,6 +1232,10 @@ function ArtemisUI:Window(cfg)
 		for flag,handler in pairs(flagHandlers) do if FLAGS[flag]~=nil then handler(FLAGS[flag]) end end
 	end
 	function WinObj:SetToggleKey(key) toggleKey=key end
+	function WinObj:SetShadow(on)
+		shadowOn=on and true or false
+		tw(shadowImg,0.18,{ImageTransparency=shadowOn and 0.5 or 1})
+	end
 
 	function WinObj:SetAccent(colorOrRainbow)
 		if rainbowConn then rainbowConn:Disconnect(); rainbowConn=nil end
@@ -858,16 +1251,31 @@ function ArtemisUI:Window(cfg)
 	end
 
 	function WinObj:SetTheme(name)
-		local t=THEMES[name]; if not t then return end
+		local t, resolved = resolveTheme(name)
+		if not t then warn("[ArtemisUI] unknown theme: "..tostring(name)); return end
 		for k,v in pairs(t) do BASE[k]=v; C[k]=v end
-		win.BackgroundColor3=C.bg1; topbar.BackgroundColor3=C.bg1; tabbar.BackgroundColor3=C.bg1
-		contentBg.BackgroundColor3=C.bg0; scroll.ScrollBarImageColor3=C.brd1
-		winStroke.Color=C.brd0; tabHairline.BackgroundColor3=C.brd0; fab.BackgroundColor3=C.bg2
-		FLAGS["__theme"]=name; saveConfig(CONFIG_FILE,FLAGS)
+		applyTheme()
+		if not FLAGS["__accent"] and THEME_ACCENTS[resolved] then ApplyAccent(THEME_ACCENTS[resolved]) end
+		FLAGS["__theme"]=resolved; saveConfig(CONFIG_FILE,FLAGS)
 	end
 
 	function WinObj:GetThemes()
 		local out={}; for k in pairs(THEMES) do table.insert(out,k) end; table.sort(out); return out
+	end
+
+	function WinObj:TopbarButton(glyph,cb,opts)
+		opts=opts or {}
+		if customTopbarCount>=5 then warn("[ArtemisUI] topbar button cap reached (5)"); return nil end
+		customTopbarCount=customTopbarCount+1
+		local xOff=-118-(28*customTopbarCount)
+		local btn=mkCtrl(xOff, opts.Icon and "" or glyph, false)
+		if opts.Icon then
+			local ic=mkIcon(btn,glyph,12,C.textLo,10); ic.AnchorPoint=Vector2.new(0.5,0.5); ic.Position=UDim2.new(0.5,0,0.5,0); ic.Size=UDim2.new(0,12,0,12)
+			btn.MouseEnter:Connect(function() tw(ic,0.15,{ImageColor3=ACCENT}) end)
+			btn.MouseLeave:Connect(function() tw(ic,0.2,{ImageColor3=C.textLo}) end)
+		end
+		btn.MouseButton1Click:Connect(function() if cb then safeCall(cb) end end)
+		return btn
 	end
 
 	UserInputService.InputBegan:Connect(function(i,gp)
@@ -879,27 +1287,55 @@ function ArtemisUI:Window(cfg)
 
 	function WinObj:Tab(name)
 		local tabIcon,tabLabel,tabLib=parseLabel(name); local displayName=tabIcon and tabLabel or name
-		local btn=new("TextButton",{Name=name.."_Tab",Size=UDim2.new(0,0,0,26),AutomaticSize=Enum.AutomaticSize.X,BackgroundColor3=C.bg3,BackgroundTransparency=1,Text="",BorderSizePixel=0,ZIndex=6,AutoButtonColor=false},tabScroll)
-		corner(R.elem,btn); tabBtns[name]=btn
-		new("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder},btn)
-		inset(0,0,12,12,btn)
-		if tabIcon then local ic=mkIcon(btn,tabIcon,12,C.textLo,7,tabLib); ic.Name="Icon"; ic.LayoutOrder=0; ic.Size=UDim2.new(0,12,0,12) end
-		local lbl=new("TextLabel",{Name="Lbl",Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,BackgroundTransparency=1,Text=displayName,TextColor3=C.textLo,Font=Enum.Font.GothamSemibold,TextSize=11,ZIndex=7,LayoutOrder=1},btn)
+		local btn
+		if TAB_SIDE=="left" then
+			btn=new("TextButton",{Name=name.."_Tab",Size=UDim2.new(1,0,0,32),BackgroundColor3=C.bg3,BackgroundTransparency=1,Text="",BorderSizePixel=0,ClipsDescendants=true,ZIndex=6,AutoButtonColor=false},tabScroll)
+			corner(R.elem,btn); tabBtns[name]=btn
+		else
+			btn=new("TextButton",{Name=name.."_Tab",Size=UDim2.new(0,0,0,26),AutomaticSize=Enum.AutomaticSize.X,BackgroundColor3=C.bg3,BackgroundTransparency=1,Text="",BorderSizePixel=0,ZIndex=6,AutoButtonColor=false},tabScroll)
+			corner(R.elem,btn); tabBtns[name]=btn
+			new("UIListLayout",{FillDirection=Enum.FillDirection.Horizontal,VerticalAlignment=Enum.VerticalAlignment.Center,Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder},btn)
+			inset(0,0,12,12,btn)
+		end
+		local ic
+		if tabIcon then
+			ic=mkIcon(btn,tabIcon,12,C.textLo,7,tabLib); ic.Name="Icon"; ic.LayoutOrder=0; ic.Size=UDim2.new(0,12,0,12)
+			if TAB_SIDE=="left" then ic.AnchorPoint=Vector2.new(0,0); ic.Position=railOpen and UDim2.new(0,14,0.5,-6) or UDim2.new(0.5,-6,0.5,-6) end
+		end
+		local lbl
+		if TAB_SIDE=="left" then
+			lbl=new("TextLabel",{Name="Lbl",Size=UDim2.new(1,-40,1,0),Position=UDim2.new(0,32,0,0),BackgroundTransparency=1,Text=displayName,TextColor3=C.textLo,TextTransparency=railOpen and 0 or 1,Font=Enum.Font.GothamSemibold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=7},btn)
+			table.insert(railRows,{icon=ic,lbl=lbl})
+		else
+			lbl=new("TextLabel",{Name="Lbl",Size=UDim2.new(0,0,1,0),AutomaticSize=Enum.AutomaticSize.X,BackgroundTransparency=1,Text=displayName,TextColor3=C.textLo,Font=Enum.Font.GothamSemibold,TextSize=11,ZIndex=7,LayoutOrder=1},btn)
+		end
 		btn.MouseButton1Click:Connect(function() activateTab(name) end)
 		btn.MouseEnter:Connect(function()
-			if activeTab~=name then twHover(btn,0.15,{BackgroundTransparency=0.84,BackgroundColor3=C.bg4}); twHover(lbl,0.15,{TextColor3=C.textMid}); if btn:FindFirstChild("Icon") then twHover(btn.Icon,0.15,{ImageColor3=C.textMid}) end end
+			if activeTab~=name then twHover(btn,0.15,{BackgroundTransparency=0.84,BackgroundColor3=C.bg4}); twHover(lbl,0.15,{TextColor3=C.textMid}); if ic then twHover(ic,0.15,{ImageColor3=C.textMid}) end end
 		end)
 		btn.MouseLeave:Connect(function()
-			if activeTab~=name then twHover(btn,0.2,{BackgroundTransparency=1}); twHover(lbl,0.2,{TextColor3=C.textLo}); if btn:FindFirstChild("Icon") then twHover(btn.Icon,0.2,{ImageColor3=C.textLo}) end end
+			if activeTab~=name then twHover(btn,0.2,{BackgroundTransparency=1}); twHover(lbl,0.2,{TextColor3=C.textLo}); if ic then twHover(ic,0.2,{ImageColor3=C.textLo}) end end
 		end)
 		local pane=new("Frame",{Name=name.."_Pane",Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,BorderSizePixel=0,Visible=false,ZIndex=2},scroll)
-		vstack(16,pane); tabs[name]=pane
+		new("UIListLayout",{Padding=UDim.new(0,16),FillDirection=Enum.FillDirection.Horizontal,SortOrder=Enum.SortOrder.LayoutOrder,VerticalAlignment=Enum.VerticalAlignment.Top},pane)
+		local colL=new("Frame",{Name="ColL",Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,BorderSizePixel=0,LayoutOrder=1},pane)
+		vstack(16,colL)
+		local colR=new("Frame",{Name="ColR",Size=UDim2.new(0,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,BorderSizePixel=0,LayoutOrder=2,Visible=false},pane)
+		vstack(16,colR)
+		local splitActive=false
+		local function ensureSplit()
+			if splitActive then return end
+			splitActive=true; colL.Size=UDim2.new(0.5,-8,0,0); colR.Size=UDim2.new(0.5,-8,0,0); colR.Visible=true
+		end
+		tabs[name]=pane
 		if activeTab==nil then activateTab(name) end
 
 		local TabObj={}
 
-		function TabObj:Section(secName)
-			local wrap=new("Frame",{Name=secName.."_Wrap",Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,BorderSizePixel=0},pane)
+		function TabObj:Section(secName, column)
+			local target=colL
+			if type(column)=="string" and column:lower()=="right" then ensureSplit(); target=colR end
+			local wrap=new("Frame",{Name=secName.."_Wrap",Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,BorderSizePixel=0},target)
 			vstack(0,wrap)
 			local secIcon,secLabel,secLib=parseLabel(secName)
 			local hRow=new("Frame",{Size=UDim2.new(1,0,0,22),BackgroundTransparency=1,BorderSizePixel=0,LayoutOrder=0},wrap)
@@ -912,12 +1348,15 @@ function ArtemisUI:Window(cfg)
 				new("TextLabel",{Size=UDim2.new(1,-12,1,0),Position=UDim2.new(0,9,0,0),BackgroundTransparency=1,Text=string.upper(secName),TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=3},hRow)
 			end
 			local body=new("Frame",{Name="Body",Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=C.bg2,BorderSizePixel=0,LayoutOrder=1,ClipsDescendants=false},wrap)
-			corner(R.card,body); local bodyStr=outline(C.brd0,1,body)
-			local topLine=new("Frame",{Size=UDim2.new(1,0,0,1),BackgroundColor3=ACCENT,BackgroundTransparency=0.5,BorderSizePixel=0,ZIndex=5,LayoutOrder=-200},body)
+			corner(R.card,body); local bodyStr=outline(C.brd1,1.2,body); bodyStr.Transparency=0.3
+			regTh(body,"BackgroundColor3","bg2"); regTh(bodyStr,"Color","brd1")
+			local hiLine=new("Frame",{Size=UDim2.new(1,-2,0,1),Position=UDim2.new(0,1,0,1),BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=0.94,BorderSizePixel=0,ZIndex=4,LayoutOrder=-201},body)
+			local topLine=new("Frame",{Size=UDim2.new(1,-2,0,2),Position=UDim2.new(0,1,0,0),BackgroundColor3=ACCENT,BackgroundTransparency=0.35,BorderSizePixel=0,ZIndex=5,LayoutOrder=-200},body)
+			corner(1,topLine)
 			new("UIGradient",{Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(0.08,0),NumberSequenceKeypoint.new(0.92,0),NumberSequenceKeypoint.new(1,1)})},topLine)
 			regAc(topLine,"BackgroundColor3")
-			body.MouseEnter:Connect(function() twHover(bodyStr,0.2,{Color=C.brd1,Transparency=0}) end)
-			body.MouseLeave:Connect(function() twHover(bodyStr,0.3,{Color=C.brd0,Transparency=0}) end)
+			body.MouseEnter:Connect(function() twHover(bodyStr,0.2,{Color=ACCENT,Transparency=0.05}) end)
+			body.MouseLeave:Connect(function() twHover(bodyStr,0.3,{Color=C.brd1,Transparency=0.3}) end)
 			vstack(0,body)
 			local function spacer(lo) new("Frame",{Size=UDim2.new(1,0,0,7),BackgroundTransparency=1,BorderSizePixel=0,LayoutOrder=lo},body) end
 			spacer(1)
@@ -925,6 +1364,7 @@ function ArtemisUI:Window(cfg)
 			local function div()
 				if rowN==0 then return end
 				local d=new("Frame",{Size=UDim2.new(1,-16,0,1),BackgroundColor3=C.brd0,BackgroundTransparency=0.6,BorderSizePixel=0,LayoutOrder=rowN*100+50},body)
+				regTh(d,"BackgroundColor3","brd0")
 				inset(0,0,8,8,d)
 			end
 			local function mkRow(h)
@@ -935,19 +1375,81 @@ function ArtemisUI:Window(cfg)
 
 			local SecObj={}
 
-			function SecObj:Button(text,cb)
+			local function mkBindPill(parent,pos,flagKey,defaultKey,onTrigger)
+				local pill=new("TextButton",{Size=UDim2.new(0,26,0,20),Position=pos,BackgroundColor3=C.bg4,Text="",BorderSizePixel=0,ZIndex=7},parent)
+				corner(6,pill); local pillStr=outline(C.brd1,1,pill)
+				regTh(pill,"BackgroundColor3","bg4"); regTh(pillStr,"Color","brd1")
+				local keyData=keyDataFromDefault(defaultKey)
+				if flagKey and FLAGS[flagKey] then keyData=keyDataFromDefault(FLAGS[flagKey]) or keyData end
+				local ic=mkIcon(pill,"key-round",11,C.textLo,8); ic.AnchorPoint=Vector2.new(0.5,0.5); ic.Position=UDim2.new(0.5,0,0.5,0); ic.Size=UDim2.new(0,11,0,11)
+				local kbLbl=new("TextLabel",{Size=UDim2.new(1,-4,1,0),BackgroundTransparency=1,Text="",TextColor3=ACCENT,Font=Enum.Font.GothamBold,TextSize=9,TextXAlignment=Enum.TextXAlignment.Center,TextTruncate=Enum.TextTruncate.AtEnd,Visible=false,ZIndex=8},pill)
+				regAc(kbLbl,"TextColor3")
+				local clearX=new("TextButton",{Size=UDim2.new(0,11,0,11),AnchorPoint=Vector2.new(1,0),Position=UDim2.new(1,4,0,-4),BackgroundColor3=C.bg2,Text="×",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=9,BorderSizePixel=0,Visible=false,ZIndex=9},pill)
+				corner(5,clearX); local clearXStr=outline(C.brd0,1,clearX); regTh(clearX,"BackgroundColor3","bg2"); regTh(clearXStr,"Color","brd0")
+				clearX.MouseEnter:Connect(function() twHover(clearX,0.12,{BackgroundColor3=BASE.red,TextColor3=BASE.white}) end)
+				clearX.MouseLeave:Connect(function() twHover(clearX,0.16,{BackgroundColor3=C.bg2,TextColor3=C.textLo}) end)
+				local binding=false; local armedAt=0
+				local function refresh()
+					if keyData then ic.Visible=false; kbLbl.Visible=true; kbLbl.Text=resolveKeyDisplay(keyData); kbLbl.TextColor3=ACCENT; clearX.Visible=true
+					else ic.Visible=true; kbLbl.Visible=false; ic.ImageColor3=C.textLo; clearX.Visible=false end
+				end
+				refresh()
+				pill.MouseEnter:Connect(function() twHover(pill,0.14,{BackgroundColor3=C.acDim}); if not keyData then twHover(ic,0.14,{ImageColor3=ACCENT}) end end)
+				pill.MouseLeave:Connect(function() if not binding then twHover(pill,0.2,{BackgroundColor3=C.bg4}); if not keyData then twHover(ic,0.2,{ImageColor3=C.textLo}) end end end)
+				local function cancelBind() binding=false; pillStr.Color=C.brd1; refresh() end
+				pill.MouseButton1Click:Connect(function()
+					if binding then return end
+					binding=true; armedAt=os.clock(); pillStr.Color=ACCENT; pillStr.Transparency=0
+					ic.Visible=false; kbLbl.Visible=true; kbLbl.TextColor3=C.textHi; kbLbl.Text="..."; clearX.Visible=false
+				end)
+				clearX.MouseButton1Click:Connect(function()
+					if binding then cancelBind() end
+					keyData=nil; refresh()
+					if flagKey then FLAGS[flagKey]=nil; saveConfig(CONFIG_FILE,FLAGS) end
+				end)
+				pill.MouseButton2Click:Connect(function()
+					if binding then cancelBind(); return end
+					keyData=nil; refresh()
+					if flagKey then FLAGS[flagKey]=nil; saveConfig(CONFIG_FILE,FLAGS) end
+				end)
+				UserInputService.InputBegan:Connect(function(i,gp)
+					if binding then
+						if os.clock()-armedAt<0.15 then return end
+						if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==Enum.KeyCode.Escape then cancelBind(); return end
+						local name2,isMouse=nil,false
+						if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode~=Enum.KeyCode.Unknown then name2=tostring(i.KeyCode):gsub("Enum%.KeyCode%.","")
+						elseif MB_NAMES[i.UserInputType] then name2=MB_NAMES[i.UserInputType]; isMouse=true end
+						if name2 then
+							binding=false; keyData=isMouse and {mouse=true,inputType=i.UserInputType,name=name2} or {mouse=false,keyCode=i.KeyCode,name=name2}
+							pillStr.Color=C.brd1; refresh()
+							if flagKey then FLAGS[flagKey]=name2; saveConfig(CONFIG_FILE,FLAGS) end
+						end
+					elseif keyData and pill.Parent and not gp then
+						local triggered=false
+						if keyData.mouse then if i.UserInputType==keyData.inputType then triggered=true end
+						else if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==keyData.keyCode then triggered=true end end
+						if triggered and onTrigger then onTrigger() end
+					end
+				end)
+				return pill
+			end
+
+			function SecObj:Button(text,cb,opts)
+				opts=opts or {}
 				local btnIcon,btnLabel,btnLib=parseLabel(text); local displayLabel=btnIcon and btnLabel or text
 				div(); local r=mkRow(40); r.Parent=body
 				local PILL_W=28
+				local kbW=opts.Keybindable and 32 or 0
 				local bg=new("Frame",{Size=UDim2.new(1,30,1,0),Position=UDim2.new(0,-14,0,0),BackgroundColor3=C.bg3,BackgroundTransparency=1,BorderSizePixel=0,ZIndex=3},r)
 				corner(R.elem,bg); local bgStr=outline(C.brd1,1,bg); bgStr.Transparency=1
 				local hit=new("TextButton",{Size=UDim2.new(1,30,1,0),Position=UDim2.new(0,-14,0,0),BackgroundTransparency=1,Text="",BorderSizePixel=0,ZIndex=6},r)
 				corner(R.elem,hit)
 				if btnIcon then local bic=mkIcon(r,btnIcon,13,C.textMid,4,btnLib); bic.Name="Icon"; bic.Position=UDim2.new(0,4,0.5,-6) end
-				local lbl2=new("TextLabel",{Name="L",Size=UDim2.new(1,-(PILL_W+12+(btnIcon and 20 or 0)),1,0),Position=UDim2.new(0,btnIcon and 22 or 4,0,0),BackgroundTransparency=1,Text=displayLabel,TextColor3=C.textMid,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=4},r)
+				local lbl2=new("TextLabel",{Name="L",Size=UDim2.new(1,-(PILL_W+12+kbW+(btnIcon and 20 or 0)),1,0),Position=UDim2.new(0,btnIcon and 22 or 4,0,0),BackgroundTransparency=1,Text=displayLabel,TextColor3=C.textMid,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=4},r)
 				local pill=new("Frame",{Size=UDim2.new(0,PILL_W,0,22),Position=UDim2.new(1,-PILL_W,0.5,-11),BackgroundColor3=C.bg4,BorderSizePixel=0,ZIndex=5},r)
 				corner(R.elem,pill); outline(C.brd0,1,pill)
 				new("TextLabel",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text="›",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=14,TextXAlignment=Enum.TextXAlignment.Center,ZIndex=6},pill)
+				if opts.Keybindable then mkBindPill(r,UDim2.new(1,-(PILL_W+38),0.5,-10),opts.Flag and opts.Flag.."_kb" or nil,opts.Bind,function() if cb then safeCall(cb) end end) end
 				hit.MouseEnter:Connect(function()
 					twHover(bg,0.14,{BackgroundTransparency=0.72,BackgroundColor3=C.bg3}); twHover(bgStr,0.14,{Transparency=0,Color=C.brd1})
 					twHover(lbl2,0.14,{TextColor3=C.textHi}); if r:FindFirstChild("Icon") then twHover(r.Icon,0.14,{ImageColor3=C.textHi}) end
@@ -975,7 +1477,7 @@ function ArtemisUI:Window(cfg)
 						end
 					end
 				end)
-				table.insert(searchRegistry,{label=displayLabel,kind="button",cb=cb})
+				table.insert(searchRegistry,{label=displayLabel,kind="button",cb=cb,row=r,tabName=name})
 			end
 
 			function SecObj:Toggle(text,default,cb,opts)
@@ -984,13 +1486,16 @@ function ArtemisUI:Window(cfg)
 				div(); local r=mkRow(40); r.Parent=body
 				local on=default==true
 				if togIcon then local tImg=mkIcon(r,togIcon,14,C.textMid,4,togLib); tImg.Position=UDim2.new(0,0,0.5,-7) end
-				new("TextLabel",{Name="L",Size=UDim2.new(1,-60,1,0),Position=UDim2.new(0,togIcon and 18 or 0,0,0),BackgroundTransparency=1,Text=displayLabel,TextColor3=C.textMid,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=4},r)
+				new("TextLabel",{Name="L",Size=UDim2.new(1,-92,1,0),Position=UDim2.new(0,togIcon and 18 or 0,0,0),BackgroundTransparency=1,Text=displayLabel,TextColor3=C.textMid,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=4},r)
 				local track=new("Frame",{Size=UDim2.new(0,38,0,20),Position=UDim2.new(1,-38,0.5,-10),BackgroundColor3=on and ACCENT or C.bg4,BorderSizePixel=0,ClipsDescendants=false,ZIndex=4},r)
 				corner(R.toggle,track); local tStr=outline(on and ACCENT or C.brd1,1,track)
 				local knob=new("Frame",{Size=UDim2.new(0,14,0,14),Position=UDim2.new(0,on and 21 or 3,0.5,-7),BackgroundColor3=C.white,BorderSizePixel=0,ZIndex=5},track)
 				corner(R.knob,knob)
 				regAcIf(track,"BackgroundColor3",function() return on end)
 				regAcIf(tStr,"Color",function() return on end)
+				regTh(track,"BackgroundColor3","bg4",function() return not on end)
+				regTh(tStr,"Color","brd1",function() return not on end)
+				regTh(knob,"BackgroundColor3","white")
 				local click=new("TextButton",{Size=UDim2.new(1,30,1,0),Position=UDim2.new(0,-14,0,0),BackgroundTransparency=1,Text="",BorderSizePixel=0,ZIndex=6},r)
 				local function setT(v,skipSave)
 					if on==v then return end; on=v
@@ -999,6 +1504,7 @@ function ArtemisUI:Window(cfg)
 					if opts.Flag and not skipSave then FLAGS[opts.Flag]=on; saveConfig(CONFIG_FILE,FLAGS) end
 					if cb then task.spawn(cb,on) end
 				end
+				mkBindPill(r,UDim2.new(1,-70,0.5,-10),opts.Flag and opts.Flag.."_kb" or nil,opts.Bind,function() setT(not on) end)
 				if opts.Flag then
 					flagHandlers[opts.Flag]=function(value) if type(value)=="boolean" and value~=on then setT(value,true) end end
 					if FLAGS[opts.Flag]~=nil then
@@ -1009,7 +1515,7 @@ function ArtemisUI:Window(cfg)
 				click.MouseEnter:Connect(function() twHover(r,0.14,{BackgroundColor3=C.bg4,BackgroundTransparency=0.88}) end)
 				click.MouseLeave:Connect(function() twHover(r,0.2,{BackgroundTransparency=1}) end)
 				click.MouseButton1Click:Connect(function() setT(not on) end)
-				table.insert(searchRegistry,{label=displayLabel,kind="toggle",cb=function() setT(not on) end})
+				table.insert(searchRegistry,{label=displayLabel,kind="toggle",cb=function() setT(not on) end,row=r,tabName=name})
 				return {Set=function(_,v) setT(v) end, Get=function() return on end, Toggle=function() setT(not on) end}
 			end
 
@@ -1029,7 +1535,8 @@ function ArtemisUI:Window(cfg)
 				regAc(valLbl,"TextColor3")
 				local trackWrap=new("Frame",{Size=UDim2.new(1,0,0,18),Position=UDim2.new(0,0,1,-20),BackgroundTransparency=1,ZIndex=3},r)
 				local track=new("Frame",{Name="Track",Size=UDim2.new(1,0,0,5),Position=UDim2.new(0,0,0.5,-2),BackgroundColor3=C.bg4,BorderSizePixel=0,ClipsDescendants=false,ZIndex=4},trackWrap)
-				corner(R.track,track); outline(C.brd0,1,track)
+				corner(R.track,track); local trackStr=outline(C.brd0,1,track)
+				regTh(track,"BackgroundColor3","bg4"); regTh(trackStr,"Color","brd0")
 				local curV=defV or minV
 				if opts.Flag and FLAGS[opts.Flag]~=nil then curV=math.clamp(FLAGS[opts.Flag],minV,maxV) end
 				local iR=math.clamp((curV-minV)/(maxV-minV),0,1)
@@ -1038,6 +1545,7 @@ function ArtemisUI:Window(cfg)
 				new("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.new(1,1,1)),ColorSequenceKeypoint.new(1,Color3.new(1,1,1))}),Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0.35),NumberSequenceKeypoint.new(1,0)})},fill)
 				local knob=new("Frame",{Name="Knob",Size=UDim2.new(0,14,0,14),Position=UDim2.new(iR,-7,0.5,-7),BackgroundColor3=C.white,BorderSizePixel=0,ClipsDescendants=false,ZIndex=6},track)
 				corner(R.knob,knob)
+				regTh(knob,"BackgroundColor3","white")
 				local knobStr=outline(ACCENT,1.5,knob); regAc(knobStr,"Color")
 				valLbl.Text=tostring(curV)
 				local sliding=false
@@ -1073,7 +1581,7 @@ function ArtemisUI:Window(cfg)
 						end
 					end
 				end
-				table.insert(searchRegistry,{label=displayLabel,kind="slider",cb=nil})
+				table.insert(searchRegistry,{label=displayLabel,kind="slider",cb=nil,row=r,tabName=name})
 				return {
 					Get=function() return curV end,
 					Set=function(_,v)
@@ -1201,7 +1709,7 @@ function ArtemisUI:Window(cfg)
 						end
 					end
 				end
-				table.insert(searchRegistry,{label=displayLabel,kind="colorpicker",cb=nil})
+				table.insert(searchRegistry,{label=displayLabel,kind="colorpicker",cb=nil,row=r,tabName=name})
 				return {
 					Get=function() return currentColor end,
 					Set=function(_,c)
@@ -1294,7 +1802,7 @@ function ArtemisUI:Window(cfg)
 				hit.MouseEnter:Connect(function() if not ddOpen then twHover(container,0.14,{BackgroundColor3=C.bg3}) end end)
 				hit.MouseLeave:Connect(function() if not ddOpen then twHover(container,0.2,{BackgroundColor3=C.bg2}) end end)
 				if opts.Flag then flagHandlers[opts.Flag]=function(value) if type(value)=="string" then sel=value; selLbl.Text=value; applyOptionStates() end end end
-				table.insert(searchRegistry,{label=text,kind="dropdown",cb=nil})
+				table.insert(searchRegistry,{label=text,kind="dropdown",cb=nil,row=container,tabName=name})
 				return {
 					Get=function() return sel end,
 					Set=function(_,v) sel=v; selLbl.Text=v; if opts.Flag then FLAGS[opts.Flag]=v; saveConfig(CONFIG_FILE,FLAGS) end; applyOptionStates() end,
@@ -1661,7 +2169,7 @@ function ArtemisUI:Window(cfg)
 					end
 				end
 
-				table.insert(searchRegistry, { label = displayLabel, kind = "multidropdown", cb = nil })
+				table.insert(searchRegistry, { label = displayLabel, kind = "multidropdown", cb = nil, row = container, tabName = name })
 
 				return {
 					Get = function() return getSelected() end,
@@ -1702,22 +2210,41 @@ function ArtemisUI:Window(cfg)
 				inset(0,0,10,10,box)
 				box.Focused:Connect(function() tw(bStr,0.15,{Color=ACCENT,Thickness=1.5}); tw(boxWrap,0.15,{BackgroundColor3=C.acDim}) end)
 				box.FocusLost:Connect(function(enter) tw(bStr,0.2,{Color=C.brd0,Thickness=1}); tw(boxWrap,0.2,{BackgroundColor3=C.bg4}); if cb then task.spawn(cb,box.Text,enter) end end)
-				table.insert(searchRegistry,{label=text,kind="input",cb=nil})
+				table.insert(searchRegistry,{label=text,kind="input",cb=nil,row=r,tabName=name})
 				return {Get=function() return box.Text end, Set=function(_,v) box.Text=v end}
 			end
 
 			function SecObj:Keybind(text,default,cb)
 				local kbIcon,kbLabel,kbLib=parseLabel(text); local displayLabel=kbIcon and kbLabel or text
 				div(); local r=mkRow(40); r.Parent=body
-				local binding=false; local keyData=keyDataFromDefault(default)
+				local binding=false; local armedAt=0; local keyData=keyDataFromDefault(default)
 				if kbIcon then local kImg=mkIcon(r,kbIcon,14,C.textMid,4,kbLib); kImg.Position=UDim2.new(0,0,0.5,-7) end
-				new("TextLabel",{Name="L",Size=UDim2.new(1,-64,1,0),Position=UDim2.new(0,kbIcon and 18 or 0,0,0),BackgroundTransparency=1,Text=displayLabel,TextColor3=C.textMid,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=4},r)
+				new("TextLabel",{Name="L",Size=UDim2.new(1,-90,1,0),Position=UDim2.new(0,kbIcon and 18 or 0,0,0),BackgroundTransparency=1,Text=displayLabel,TextColor3=C.textMid,Font=Enum.Font.GothamSemibold,TextSize=12,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=4},r)
 				local keyPill=new("TextButton",{Size=UDim2.new(0,56,0,24),Position=UDim2.new(1,-56,0.5,-12),BackgroundColor3=C.bg4,Text=resolveKeyDisplay(keyData),TextColor3=ACCENT,Font=Enum.Font.GothamBold,TextSize=10,BorderSizePixel=0,ZIndex=4},r)
 				corner(R.elem,keyPill); outline(C.brd1,1,keyPill); regAc(keyPill,"TextColor3")
-				keyPill.MouseButton1Click:Connect(function() binding=true; keyPill.Text="..."; twHover(keyPill,0.15,{BackgroundColor3=C.acDim,TextColor3=C.textHi}) end)
+				local clearBtn=new("TextButton",{Size=UDim2.new(0,18,0,18),Position=UDim2.new(1,-82,0.5,-9),BackgroundColor3=C.bg4,Text="×",TextColor3=C.textLo,Font=Enum.Font.GothamBold,TextSize=11,BorderSizePixel=0,ZIndex=4},r)
+				corner(R.elem,clearBtn); outline(C.brd0,1,clearBtn)
+				clearBtn.MouseEnter:Connect(function() tw(clearBtn,0.15,{BackgroundColor3=BASE.red,TextColor3=BASE.white}) end)
+				clearBtn.MouseLeave:Connect(function() tw(clearBtn,0.2,{BackgroundColor3=C.bg4,TextColor3=C.textLo}) end)
+				local function cancelBind()
+					binding=false; keyPill.Text=resolveKeyDisplay(keyData); twHover(keyPill,0.2,{BackgroundColor3=C.bg4,TextColor3=ACCENT})
+				end
+				clearBtn.MouseButton1Click:Connect(function()
+					if binding then cancelBind() end
+					keyData=nil; keyPill.Text=resolveKeyDisplay(nil)
+				end)
+				keyPill.MouseButton1Click:Connect(function()
+					if binding then return end
+					binding=true; armedAt=os.clock(); keyPill.Text="..."; twHover(keyPill,0.15,{BackgroundColor3=C.acDim,TextColor3=C.textHi})
+				end)
+				keyPill.MouseButton2Click:Connect(function()
+					if binding then cancelBind(); return end
+					keyData=nil; keyPill.Text=resolveKeyDisplay(nil); twHover(keyPill,0.2,{BackgroundColor3=C.bg4,TextColor3=ACCENT})
+				end)
 				UserInputService.InputBegan:Connect(function(i,gp)
-					if gp then return end
 					if binding then
+						if os.clock()-armedAt<0.15 then return end
+						if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==Enum.KeyCode.Escape then cancelBind(); return end
 						local name2,isMouse=nil,false
 						if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode~=Enum.KeyCode.Unknown then name2=tostring(i.KeyCode):gsub("Enum%.KeyCode%.","")
 						elseif MB_NAMES[i.UserInputType] then name2=MB_NAMES[i.UserInputType]; isMouse=true end
@@ -1725,17 +2252,20 @@ function ArtemisUI:Window(cfg)
 							binding=false; keyData=isMouse and {mouse=true,inputType=i.UserInputType,name=name2} or {mouse=false,keyCode=i.KeyCode,name=name2}
 							keyPill.Text=name2; twHover(keyPill,0.22,{BackgroundColor3=C.bg4,TextColor3=ACCENT})
 						end
-					elseif keyData and not binding then
+					elseif keyData and not gp then
 						local triggered=false
 						if keyData.mouse then if i.UserInputType==keyData.inputType then triggered=true end
 						else if i.UserInputType==Enum.UserInputType.Keyboard and i.KeyCode==keyData.keyCode then triggered=true end end
 						if triggered and cb then task.spawn(cb,keyData) end
 					end
 				end)
-				table.insert(searchRegistry,{label=displayLabel,kind="keybind",cb=nil})
+				table.insert(searchRegistry,{label=displayLabel,kind="keybind",cb=nil,row=r,tabName=name})
 				return {
 					Get=function() return keyData end,
-					Set=function(_,v) keyData=keyDataFromDefault(v) or keyDataFromDefault(default); keyPill.Text=resolveKeyDisplay(keyData) end
+					Set=function(_,v)
+						keyData=v==nil and nil or (keyDataFromDefault(v) or keyDataFromDefault(default))
+						keyPill.Text=resolveKeyDisplay(keyData)
+					end
 				}
 			end
 
@@ -1746,7 +2276,7 @@ function ArtemisUI:Window(cfg)
 				local headerLbl=nil
 				if header and header~="" then headerLbl=new("TextLabel",{Size=UDim2.new(1,0,0,15),BackgroundTransparency=1,Text=header,TextColor3=C.textMid,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,LayoutOrder=0,ZIndex=4},pw) end
 				local bodyLbl=new("TextLabel",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,Text=bodyTxt or "",TextColor3=C.textLo,Font=Enum.Font.Gotham,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true,LayoutOrder=1,ZIndex=4},pw)
-				table.insert(searchRegistry,{label=header and header or (bodyTxt or ""),kind="paragraph",cb=nil})
+				table.insert(searchRegistry,{label=header and header or (bodyTxt or ""),kind="paragraph",cb=nil,row=pw,tabName=name})
 				return {
 					Update=function(_,nh,nb)
 						if headerLbl then headerLbl.Text=nh or "" elseif nh and nh~="" then headerLbl=new("TextLabel",{Size=UDim2.new(1,0,0,15),BackgroundTransparency=1,Text=nh,TextColor3=C.textMid,Font=Enum.Font.GothamBold,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,LayoutOrder=0,ZIndex=4},pw) end
