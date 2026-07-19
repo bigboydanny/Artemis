@@ -141,6 +141,6 @@
 		"bg0": "#202020", "bg1": "#262626", "bg2": "#2D2D2D", "bg3": "#363636",
 		"bg4": "#404040", "brd0": "#454545", "brd1": "#5A5A5A",
 		"textHi": "#F5F5F5", "textMid": "#B8B8B8", "textLo": "#707070",
-		"white": "#FFFFFF", "red": "#F04141", "accent": "#3E8EDE"
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#ff6801"
 	}
 }
