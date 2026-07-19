@@ -1,0 +1,146 @@
+{
+	"Valence": {
+		"bg0": "#07070A", "bg1": "#0C0C11", "bg2": "#111119", "bg3": "#181824",
+		"bg4": "#202030", "brd0": "#28283C", "brd1": "#373750",
+		"textHi": "#F8F6FF", "textMid": "#9692B6", "textLo": "#464368",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#6C63FF"
+	},
+	"Midnight": {
+		"bg0": "#04060E", "bg1": "#070A16", "bg2": "#0A0F20", "bg3": "#0E152C",
+		"bg4": "#131D3A", "brd0": "#1C2C52", "brd1": "#2A4074",
+		"textHi": "#DCE6FF", "textMid": "#6C84BC", "textLo": "#2E3E6E",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#408CFF"
+	},
+	"Obsidian": {
+		"bg0": "#050505", "bg1": "#0A0A0A", "bg2": "#0F0F0F", "bg3": "#151515",
+		"bg4": "#1D1D1D", "brd0": "#2C2C2C", "brd1": "#3E3E3E",
+		"textHi": "#F5F5F5", "textMid": "#989898", "textLo": "#464646",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#D6D6D6"
+	},
+	"Dusk": {
+		"bg0": "#0C0710", "bg1": "#120B19", "bg2": "#190F22", "bg3": "#22142F",
+		"bg4": "#2D1A3E", "brd0": "#42265A", "brd1": "#5A347A",
+		"textHi": "#FCF4FF", "textMid": "#AA8AC8", "textLo": "#523870",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#BD58DE"
+	},
+	"Carbon": {
+		"bg0": "#07080A", "bg1": "#0B0D10", "bg2": "#101317", "bg3": "#161A1F",
+		"bg4": "#1E232A", "brd0": "#2C343E", "brd1": "#3E4856",
+		"textHi": "#EAEEF5", "textMid": "#828EA0", "textLo": "#3A4452",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#38BDCC"
+	},
+	"Ember": {
+		"bg0": "#0A0604", "bg1": "#100905", "bg2": "#160D07", "bg3": "#1E1209",
+		"bg4": "#28180C", "brd0": "#3E2410", "brd1": "#583216",
+		"textHi": "#FFF2E2", "textMid": "#C0946C", "textLo": "#664224",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#FF8533"
+	},
+	"Frost": {
+		"bg0": "#060A0C", "bg1": "#0A1013", "bg2": "#0E171B", "bg3": "#131F24",
+		"bg4": "#1A2A30", "brd0": "#263C44", "brd1": "#36545E",
+		"textHi": "#E8F8FA", "textMid": "#80ACB6", "textLo": "#3A565E",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#5EC4D6"
+	},
+	"Crimson": {
+		"bg0": "#0B0506", "bg1": "#120809", "bg2": "#190B0D", "bg3": "#220F11",
+		"bg4": "#2E1417", "brd0": "#461A1D", "brd1": "#622226",
+		"textHi": "#FFEEEE", "textMid": "#C4787C", "textLo": "#683437",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#E0404A"
+	},
+	"Verdant": {
+		"bg0": "#050A07", "bg1": "#09100B", "bg2": "#0D1710", "bg3": "#121F16",
+		"bg4": "#182A1D", "brd0": "#243E2A", "brd1": "#32583A",
+		"textHi": "#EEFAF0", "textMid": "#82B48C", "textLo": "#3A5C40",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#5EC978"
+	},
+	"Nightshade": {
+		"bg0": "#08060C", "bg1": "#0D0A13", "bg2": "#120E1B", "bg3": "#191325",
+		"bg4": "#221A32", "brd0": "#322648", "brd1": "#463564",
+		"textHi": "#F4F0FF", "textMid": "#968AC4", "textLo": "#443A64",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#9E6EE0"
+	},
+	"Sandstone": {
+		"bg0": "#0B0906", "bg1": "#120F0A", "bg2": "#19150E", "bg3": "#221C13",
+		"bg4": "#2E261A", "brd0": "#443826", "brd1": "#5E4E36",
+		"textHi": "#FAF4E8", "textMid": "#BCA884", "textLo": "#62543C",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#D6A458"
+	},
+	"Slate": {
+		"bg0": "#0A0B0D", "bg1": "#0F1114", "bg2": "#15181C", "bg3": "#1D2126",
+		"bg4": "#272C33", "brd0": "#383F48", "brd1": "#4E5762",
+		"textHi": "#F2F4F7", "textMid": "#9AA3AF", "textLo": "#4A525C",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#5B8CFF"
+	},
+	"Amethyst": {
+		"bg0": "#0B0713", "bg1": "#120B1E", "bg2": "#191029", "bg3": "#231539",
+		"bg4": "#301C4C", "brd0": "#472A6E", "brd1": "#623B96",
+		"textHi": "#F5EEFF", "textMid": "#B29BD6", "textLo": "#584072",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#B073F0"
+	},
+	"Solstice": {
+		"bg0": "#0D0A05", "bg1": "#16110A", "bg2": "#1F1810", "bg3": "#2B2116",
+		"bg4": "#3A2C1E", "brd0": "#59421F", "brd1": "#7D5C2B",
+		"textHi": "#FFF6E4", "textMid": "#D6B87C", "textLo": "#725A33",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#F0B637"
+	},
+	"Tidepool": {
+		"bg0": "#050D0D", "bg1": "#081414", "bg2": "#0C1C1D", "bg3": "#112628",
+		"bg4": "#173437", "brd0": "#215054", "brd1": "#2D7076",
+		"textHi": "#E9FBFC", "textMid": "#84C4C8", "textLo": "#3C6467",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#2FD4C8"
+	},
+	"Aurora": {
+		"bg0": "#050C0A", "bg1": "#081310", "bg2": "#0C1B17", "bg3": "#112620",
+		"bg4": "#17332A", "brd0": "#1F4A3B", "brd1": "#2C6650",
+		"textHi": "#E8FFF4", "textMid": "#7FD9B8", "textLo": "#3A6B57",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#2EE6A8"
+	},
+	"Rosegold": {
+		"bg0": "#0D0808", "bg1": "#150E0D", "bg2": "#1E1412", "bg3": "#2A1C19",
+		"bg4": "#392621", "brd0": "#573529", "brd1": "#7A4B3A",
+		"textHi": "#FCEFE8", "textMid": "#D6A896", "textLo": "#7A5245",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#E8A87C"
+	},
+	"Neon": {
+		"bg0": "#08050C", "bg1": "#0D0812", "bg2": "#130B1C", "bg3": "#1B1028",
+		"bg4": "#251736", "brd0": "#3A1E56", "brd1": "#572B7E",
+		"textHi": "#FBEFFF", "textMid": "#C48AE6", "textLo": "#5E3680",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#FF2E9A"
+	},
+	"Sakura": {
+		"bg0": "#0C0709", "bg1": "#130A0D", "bg2": "#1B0F14", "bg3": "#26151C",
+		"bg4": "#341C26", "brd0": "#562A3B", "brd1": "#7A3C53",
+		"textHi": "#FFF0F5", "textMid": "#E6A0BC", "textLo": "#7A4258",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#FF8FB3"
+	},
+	"Abyss": {
+		"bg0": "#04070C", "bg1": "#060B14", "bg2": "#09101E", "bg3": "#0D172A",
+		"bg4": "#12203A", "brd0": "#1C3A5E", "brd1": "#275183",
+		"textHi": "#E4F4FF", "textMid": "#6FA8D6", "textLo": "#2E5470",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#1FD8FF"
+	},
+	"Champagne": {
+		"bg0": "#0B0A07", "bg1": "#14120C", "bg2": "#1D1912", "bg3": "#282219",
+		"bg4": "#362E21", "brd0": "#564A31", "brd1": "#786745",
+		"textHi": "#FBF6E8", "textMid": "#D2BE8C", "textLo": "#6E5F42",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#E8C468"
+	},
+	"Wisteria": {
+		"bg0": "#0A0810", "bg1": "#100C19", "bg2": "#171123", "bg3": "#201830",
+		"bg4": "#2C2140", "brd0": "#453562", "brd1": "#5F4A85",
+		"textHi": "#F5F0FF", "textMid": "#B8A0DE", "textLo": "#564576",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#B79CED"
+	},
+	"Cobalt": {
+		"bg0": "#05070E", "bg1": "#080B18", "bg2": "#0C1024", "bg3": "#111832",
+		"bg4": "#182142", "brd0": "#253866", "brd1": "#33488C",
+		"textHi": "#E8EDFF", "textMid": "#8298D6", "textLo": "#3A4A78",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#3B6FE0"
+	},
+	"Synapse": {
+		"bg0": "#202020", "bg1": "#262626", "bg2": "#2D2D2D", "bg3": "#363636",
+		"bg4": "#404040", "brd0": "#454545", "brd1": "#5A5A5A",
+		"textHi": "#F5F5F5", "textMid": "#B8B8B8", "textLo": "#707070",
+		"white": "#FFFFFF", "red": "#F04141", "accent": "#3E8EDE"
+	}
+}

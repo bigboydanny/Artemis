@@ -91,113 +91,21 @@ local function loadConfig(file, flags)
 	for k, v in pairs(data) do flags[k] = v end
 end
 
-local THEMES = {
-	Valence = {
-		bg0=Color3.fromRGB(7,7,10),    bg1=Color3.fromRGB(12,12,17),
-		bg2=Color3.fromRGB(17,17,25),  bg3=Color3.fromRGB(24,24,36),
-		bg4=Color3.fromRGB(32,32,48),  brd0=Color3.fromRGB(40,40,60),
-		brd1=Color3.fromRGB(55,55,80), textHi=Color3.fromRGB(248,246,255),
-		textMid=Color3.fromRGB(150,146,182), textLo=Color3.fromRGB(70,67,104),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Midnight = {
-		bg0=Color3.fromRGB(4,6,14),    bg1=Color3.fromRGB(7,10,22),
-		bg2=Color3.fromRGB(10,15,32),  bg3=Color3.fromRGB(14,21,44),
-		bg4=Color3.fromRGB(19,29,58),  brd0=Color3.fromRGB(28,44,82),
-		brd1=Color3.fromRGB(42,64,116),textHi=Color3.fromRGB(220,230,255),
-		textMid=Color3.fromRGB(108,132,188), textLo=Color3.fromRGB(46,62,110),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Obsidian = {
-		bg0=Color3.fromRGB(5,5,5),     bg1=Color3.fromRGB(10,10,10),
-		bg2=Color3.fromRGB(15,15,15),  bg3=Color3.fromRGB(21,21,21),
-		bg4=Color3.fromRGB(29,29,29),  brd0=Color3.fromRGB(44,44,44),
-		brd1=Color3.fromRGB(62,62,62), textHi=Color3.fromRGB(245,245,245),
-		textMid=Color3.fromRGB(152,152,152), textLo=Color3.fromRGB(70,70,70),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Dusk = {
-		bg0=Color3.fromRGB(12,7,16),   bg1=Color3.fromRGB(18,11,25),
-		bg2=Color3.fromRGB(25,15,34),  bg3=Color3.fromRGB(34,20,47),
-		bg4=Color3.fromRGB(45,26,62),  brd0=Color3.fromRGB(66,38,90),
-		brd1=Color3.fromRGB(90,52,122),textHi=Color3.fromRGB(252,244,255),
-		textMid=Color3.fromRGB(170,138,200), textLo=Color3.fromRGB(82,56,112),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Carbon = {
-		bg0=Color3.fromRGB(7,8,10),    bg1=Color3.fromRGB(11,13,16),
-		bg2=Color3.fromRGB(16,19,23),  bg3=Color3.fromRGB(22,26,31),
-		bg4=Color3.fromRGB(30,35,42),  brd0=Color3.fromRGB(44,52,62),
-		brd1=Color3.fromRGB(62,72,86), textHi=Color3.fromRGB(234,238,245),
-		textMid=Color3.fromRGB(130,142,160), textLo=Color3.fromRGB(58,68,82),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Ember = {
-		bg0=Color3.fromRGB(10,6,4),    bg1=Color3.fromRGB(16,9,5),
-		bg2=Color3.fromRGB(22,13,7),   bg3=Color3.fromRGB(30,18,9),
-		bg4=Color3.fromRGB(40,24,12),  brd0=Color3.fromRGB(62,36,16),
-		brd1=Color3.fromRGB(88,50,22), textHi=Color3.fromRGB(255,242,226),
-		textMid=Color3.fromRGB(192,148,108), textLo=Color3.fromRGB(102,66,36),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Frost = {
-		bg0=Color3.fromRGB(6,10,12),   bg1=Color3.fromRGB(10,16,19),
-		bg2=Color3.fromRGB(14,23,27),  bg3=Color3.fromRGB(19,31,36),
-		bg4=Color3.fromRGB(26,42,48),  brd0=Color3.fromRGB(38,60,68),
-		brd1=Color3.fromRGB(54,84,94), textHi=Color3.fromRGB(232,248,250),
-		textMid=Color3.fromRGB(128,172,182), textLo=Color3.fromRGB(58,86,94),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Crimson = {
-		bg0=Color3.fromRGB(11,5,6),    bg1=Color3.fromRGB(18,8,9),
-		bg2=Color3.fromRGB(25,11,13),  bg3=Color3.fromRGB(34,15,17),
-		bg4=Color3.fromRGB(46,20,23),  brd0=Color3.fromRGB(70,26,29),
-		brd1=Color3.fromRGB(98,34,38), textHi=Color3.fromRGB(255,238,238),
-		textMid=Color3.fromRGB(196,120,124), textLo=Color3.fromRGB(104,52,55),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Verdant = {
-		bg0=Color3.fromRGB(5,10,7),    bg1=Color3.fromRGB(9,16,11),
-		bg2=Color3.fromRGB(13,23,16),  bg3=Color3.fromRGB(18,31,22),
-		bg4=Color3.fromRGB(24,42,29),  brd0=Color3.fromRGB(36,62,42),
-		brd1=Color3.fromRGB(50,88,58), textHi=Color3.fromRGB(238,250,240),
-		textMid=Color3.fromRGB(130,180,140), textLo=Color3.fromRGB(58,92,64),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Nightshade = {
-		bg0=Color3.fromRGB(8,6,12),    bg1=Color3.fromRGB(13,10,19),
-		bg2=Color3.fromRGB(18,14,27),  bg3=Color3.fromRGB(25,19,37),
-		bg4=Color3.fromRGB(34,26,50),  brd0=Color3.fromRGB(50,38,72),
-		brd1=Color3.fromRGB(70,53,100),textHi=Color3.fromRGB(244,240,255),
-		textMid=Color3.fromRGB(150,138,196), textLo=Color3.fromRGB(68,58,100),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
-	Sandstone = {
-		bg0=Color3.fromRGB(11,9,6),    bg1=Color3.fromRGB(18,15,10),
-		bg2=Color3.fromRGB(25,21,14),  bg3=Color3.fromRGB(34,28,19),
-		bg4=Color3.fromRGB(46,38,26),  brd0=Color3.fromRGB(68,56,38),
-		brd1=Color3.fromRGB(94,78,54), textHi=Color3.fromRGB(250,244,232),
-		textMid=Color3.fromRGB(188,168,132), textLo=Color3.fromRGB(98,84,60),
-		white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
-	},
+local FALLBACK_THEME = {
+	bg0=Color3.fromRGB(7,7,10),    bg1=Color3.fromRGB(12,12,17),
+	bg2=Color3.fromRGB(17,17,25),  bg3=Color3.fromRGB(24,24,36),
+	bg4=Color3.fromRGB(32,32,48),  brd0=Color3.fromRGB(40,40,60),
+	brd1=Color3.fromRGB(55,55,80), textHi=Color3.fromRGB(248,246,255),
+	textMid=Color3.fromRGB(150,146,182), textLo=Color3.fromRGB(70,67,104),
+	white=Color3.fromRGB(255,255,255), red=Color3.fromRGB(240,65,65),
 }
+local FALLBACK_ACCENT = Color3.fromRGB(108,99,255)
 
-local THEME_ACCENTS = {
-	Valence  = Color3.fromRGB(108,99,255),
-	Midnight = Color3.fromRGB(64,140,255),
-	Obsidian = Color3.fromRGB(214,214,214),
-	Dusk     = Color3.fromRGB(189,88,222),
-	Carbon   = Color3.fromRGB(56,189,204),
-	Ember    = Color3.fromRGB(255,133,51),
-	Frost    = Color3.fromRGB(94,196,214),
-	Crimson  = Color3.fromRGB(224,64,74),
-	Verdant  = Color3.fromRGB(94,201,120),
-	Nightshade = Color3.fromRGB(158,110,224),
-	Sandstone  = Color3.fromRGB(214,164,88),
-}
+local THEMES = {}
+local THEME_ACCENTS = {}
 
 local BASE = {}
-for k, v in pairs(THEMES.Valence) do BASE[k] = v end
+for k, v in pairs(FALLBACK_THEME) do BASE[k] = v end
 
 local function new(class, props, parent)
 	local o = Instance.new(class)
@@ -234,6 +142,46 @@ local function hexToColor(hex)
 	hex=hex:gsub("#",""):upper(); if #hex~=6 then return nil end
 	local r=tonumber(hex:sub(1,2),16); local g=tonumber(hex:sub(3,4),16); local b=tonumber(hex:sub(5,6),16)
 	if not(r and g and b) then return nil end; return Color3.fromRGB(r,g,b)
+end
+
+local THEME_KEYS = {"bg0","bg1","bg2","bg3","bg4","brd0","brd1","textHi","textMid","textLo","white","red"}
+local THEMES_URL = "https://artemis.valencea.xyz/themes.json"
+
+local function ingestRemoteThemes(raw)
+	local ok, data = pcall(function() return game:GetService("HttpService"):JSONDecode(raw) end)
+	if not ok or type(data)~="table" then return false end
+	for nm, def in pairs(data) do
+		if type(nm)=="string" and type(def)=="table" then
+			local t, bad = {}, false
+			for _,k in ipairs(THEME_KEYS) do
+				local c = type(def[k])=="string" and hexToColor(def[k]) or nil
+				if not c then bad=true; break end
+				t[k]=c
+			end
+			if not bad then
+				THEMES[nm]=t
+				if type(def.accent)=="string" then
+					local ac=hexToColor(def.accent)
+					if ac then THEME_ACCENTS[nm]=ac end
+				end
+			end
+		end
+	end
+	return true
+end
+
+do
+	local ok, raw = pcall(function() return game:HttpGet(THEMES_URL) end)
+	if ok and raw and raw~="" and ingestRemoteThemes(raw) then
+		pcall(function() makefolder("ArtemisUI"); writefile("ArtemisUI/themes_cache.json", raw) end)
+	elseif isfile and readfile and isfile("ArtemisUI/themes_cache.json") then
+		local ok2, cached = pcall(readfile, "ArtemisUI/themes_cache.json")
+		if ok2 and cached and cached~="" then ingestRemoteThemes(cached) end
+	end
+	if not next(THEMES) then
+		THEMES.Valence = FALLBACK_THEME; THEME_ACCENTS.Valence = FALLBACK_ACCENT
+	end
+	for k,v in pairs(THEMES.Valence or FALLBACK_THEME) do BASE[k]=v end
 end
 
 local function corner(px,p) new("UICorner",{CornerRadius=UDim.new(0,px)},p) end
